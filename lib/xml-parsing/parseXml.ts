@@ -1,22 +1,40 @@
-import { parseString } from "xml2js"
+import { XMLParser } from "fast-xml-parser"
 import type { XmlJson } from "./xml-parsing-types"
 
+const parser = new XMLParser({
+  ignoreAttributes: false, // keep attributes
+  attributeNamePrefix: "", // attributes go under '$' in your types; we'll remap below
+  allowBooleanAttributes: true,
+  parseAttributeValue: false, // keep as strings; we'll coerce per-class
+})
+
 export const parseXml = (xml: string): XmlJson => {
-  let err: Error | null = null
-  let result: XmlJson | null = null
+  const raw = parser.parse(xml) as Record<string, any>
+  // Normalize to your XmlJson shape:
+  // - FXP uses attributes directly on the node; your types expect them in `node.$`.
+  function normalize(value: any): any {
+    if (value === null || typeof value !== "object") return value
+    if (Array.isArray(value)) return value.map(normalize)
 
-  parseString(xml, (err_, result_) => {
-    err = err_
-    result = result_
-  })
-
-  if (err) {
-    throw err
+    const out: any = {}
+    const attrs: Record<string, any> = {}
+    for (const [k, v] of Object.entries(value)) {
+      if (k.startsWith("@_")) {
+        attrs[k.slice(2)] = v
+      } else if (k === "#text") {
+        out._ = v
+      } else {
+        out[k] = normalize(v)
+      }
+    }
+    if (Object.keys(attrs).length) out.$ = attrs
+    return out
   }
 
-  if (!result) {
-    throw new Error("Failed to parse XML")
+  const rootKey = Object.keys(raw)[0]
+  if (!rootKey) {
+    throw new Error("Failed to parse XML: no root element found")
   }
-
-  return result
+  const root = normalize(raw[rootKey])
+  return { [rootKey]: root } as XmlJson
 }
