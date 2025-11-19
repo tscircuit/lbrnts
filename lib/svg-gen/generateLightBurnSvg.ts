@@ -20,6 +20,40 @@ import {
   matToSvg,
 } from "./_math"
 
+// LightBurn standard color palette
+const LIGHTBURN_COLORS: Record<number, string> = {
+  0: "#000000", // C00 - Black
+  1: "#0000FF", // C01 - Blue
+  2: "#FF0000", // C02 - Red
+  3: "#00FF00", // C03 - Green
+  4: "#FFFF00", // C04 - Yellow
+  5: "#FF8000", // C05 - Orange
+  6: "#00FFFF", // C06 - Cyan
+  7: "#FF00FF", // C07 - Magenta
+  8: "#C0C0C0", // C08 - Light Gray
+  9: "#808080", // C09 - Gray
+  10: "#800000", // C10 - Maroon
+  11: "#008000", // C11 - Dark Green
+  12: "#000080", // C12 - Navy
+  13: "#808000", // C13 - Olive
+  14: "#800080", // C14 - Purple
+  15: "#008080", // C15 - Teal
+  16: "#A0A0A0", // C16 - Gray
+  17: "#8080C0", // C17 - Light Blue/Purple
+  18: "#FFC0C0", // C18 - Light Pink
+  19: "#0080FF", // C19 - Bright Blue
+  20: "#FF0080", // C20 - Hot Pink/Magenta
+  21: "#00FF80", // C21 - Spring Green
+  22: "#FF8040", // C22 - Light Orange/Peach
+  23: "#FFC0FF", // C23 - Light Magenta/Pink
+  24: "#FF80C0", // C24 - Pink
+}
+
+function getColorForCutIndex(cutIndex: number | undefined): string {
+  if (cutIndex === undefined) return "black"
+  return LIGHTBURN_COLORS[cutIndex] || "black"
+}
+
 function bboxOfShape(shape: ShapeBase): BBox {
   const identityMat = identity()
   const xform = shape.xform ? arrayToMatrix(shape.xform) : identityMat
@@ -106,6 +140,7 @@ function svgForShape(shape: ShapeBase): INode {
   const identityMat = identity()
   const xform = shape.xform ? arrayToMatrix(shape.xform) : identityMat
   const transform = matToSvg(xform)
+  const strokeColor = getColorForCutIndex(shape.cutIndex)
 
   if (shape instanceof ShapeRect) {
     const w = shape.w || 0
@@ -129,7 +164,7 @@ function svgForShape(shape: ShapeBase): INode {
             rx: String(cr),
             ry: String(cr),
             fill: "none",
-            stroke: "black",
+            stroke: strokeColor,
           },
           children: [],
         },
@@ -156,7 +191,7 @@ function svgForShape(shape: ShapeBase): INode {
               cy: "0",
               r: String(rx),
               fill: "none",
-              stroke: "black",
+              stroke: strokeColor,
             },
             children: [],
           },
@@ -179,7 +214,7 @@ function svgForShape(shape: ShapeBase): INode {
             rx: String(rx),
             ry: String(ry),
             fill: "none",
-            stroke: "black",
+            stroke: strokeColor,
           },
           children: [],
         },
@@ -228,7 +263,7 @@ function svgForShape(shape: ShapeBase): INode {
           attributes: {
             d,
             fill: "none",
-            stroke: "black",
+            stroke: strokeColor,
           },
           children: [],
         },
@@ -278,7 +313,7 @@ function svgForShape(shape: ShapeBase): INode {
           attributes: {
             x: "0",
             y: "0",
-            fill: "black",
+            fill: strokeColor,
           },
           children: [
             {
@@ -388,9 +423,20 @@ export function generateLightBurnSvg(
       width: String(width),
       height: String(height),
       viewBox,
-      style: "background-color: white",
+      style: "background-color: white;",
     },
     children: [
+      {
+        name: "rect",
+        type: "element",
+        value: "",
+        attributes: {
+          width: "100%",
+          height: "100%",
+          fill: "white",
+        },
+        children: [],
+      },
       {
         name: "g",
         type: "element",
