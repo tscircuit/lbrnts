@@ -388,19 +388,9 @@ export function generateLightBurnSvg(
       width: String(width),
       height: String(height),
       viewBox,
+      style: "background-color: white",
     },
     children: [
-      {
-        name: "rect",
-        type: "element",
-        value: "",
-        attributes: {
-          width: "100%",
-          height: "100%",
-          fill: "white",
-        },
-        children: [],
-      },
       {
         name: "g",
         type: "element",
