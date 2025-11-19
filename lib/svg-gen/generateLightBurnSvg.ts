@@ -240,12 +240,21 @@ function svgForShape(shape: ShapeBase): INode {
           vertIdx++
         }
       } else if (type === 1) {
-        // BezierTo (quadratic or cubic)
-        const v1 = shape.verts[vertIdx]
-        const v2 = shape.verts[vertIdx + 1]
-        if (v1 && v2) {
-          d += ` Q ${v1.x} ${v1.y} ${v2.x} ${v2.y}`
-          vertIdx += 2
+        // BezierTo (cubic bezier curve)
+        const v = shape.verts[vertIdx]
+        if (v && vertIdx > 0) {
+          const prevV = shape.verts[vertIdx - 1]!
+
+          // Get control points:
+          // First control point (c1) comes from previous vertex (outgoing)
+          // Second control point (c0) comes from current vertex (incoming)
+          const c1x = prevV.c1x ?? prevV.x
+          const c1y = prevV.c1y ?? prevV.y
+          const c0x = v.c0x ?? v.x
+          const c0y = v.c0y ?? v.y
+
+          d += ` C ${c1x} ${c1y} ${c0x} ${c0y} ${v.x} ${v.y}`
+          vertIdx++
         }
       }
     }

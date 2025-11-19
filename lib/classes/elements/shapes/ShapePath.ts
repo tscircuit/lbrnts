@@ -7,6 +7,10 @@ export interface Vert {
   x: number
   y: number
   c?: number // control point flag
+  c0x?: number // control point 0 x coordinate
+  c0y?: number // control point 0 y coordinate
+  c1x?: number // control point 1 x coordinate
+  c1y?: number // control point 1 y coordinate
 }
 
 export interface Prim {
@@ -82,8 +86,13 @@ export class ShapePath extends ShapeBase {
 
   /**
    * Parse encoded VertList string format
-   * Format: V{x} {y}c{c}x{cx}c{cy}x{cpx}c{cpy}y{cpy}...
-   * Example: V2.1156745 -12.3306c0x1c1x1.5871694c1y-12.3306V7.4007263 -12.3306...
+   * Format: V{x} {y}c{flag}x{flag}c{flag}x{c1x}c{flag}y{c1y}...
+   * Example: V2.1156745 -12.3306c0x1c1x1.5871694c1y-12.3306
+   *
+   * Control points are encoded as:
+   * - c0x{value}c0y{value} = control point 0 (when both present)
+   * - c1x{value}c1y{value} = control point 1 (when both present)
+   * - c{num}x{num} alone (like c0x1) = flag, not a coordinate
    */
   static parseEncodedVertList(encoded: string): Vert[] {
     const verts: Vert[] = []
@@ -97,11 +106,42 @@ export class ShapePath extends ShapeBase {
         const x = parseFloat(match[1]!)
         const y = parseFloat(match[2]!)
 
-        // Extract control point flag if present (c{value})
-        const cMatch = part.match(/c(\d+)/)
-        const c = cMatch ? parseInt(cMatch[1]!, 10) : undefined
+        const vert: Vert = { x, y }
 
-        verts.push({ x, y, c })
+        // Extract control point flag if present (first c{value} after coords)
+        const cMatch = part.match(/c(\d+)/)
+        if (cMatch) {
+          vert.c = parseInt(cMatch[1]!, 10)
+        }
+
+        // Extract control point coordinates
+        // Only treat as coordinates if both x and y are present with decimal values
+        // c0x{decimal}c0y{decimal} or c1x{decimal}c1y{decimal}
+        const c0xMatch = part.match(/c0x([-\d.]+)/)
+        const c0yMatch = part.match(/c0y([-\d.]+)/)
+        const c1xMatch = part.match(/c1x([-\d.]+)/)
+        const c1yMatch = part.match(/c1y([-\d.]+)/)
+
+        // Only set control points if we have both x and y, and they're real coordinates (have decimals or are multi-digit)
+        if (
+          c0xMatch &&
+          c0yMatch &&
+          (c0xMatch[1]!.includes(".") || c0xMatch[1]!.length > 1)
+        ) {
+          vert.c0x = parseFloat(c0xMatch[1]!)
+          vert.c0y = parseFloat(c0yMatch[1]!)
+        }
+
+        if (
+          c1xMatch &&
+          c1yMatch &&
+          (c1xMatch[1]!.includes(".") || c1xMatch[1]!.length > 1)
+        ) {
+          vert.c1x = parseFloat(c1xMatch[1]!)
+          vert.c1y = parseFloat(c1yMatch[1]!)
+        }
+
+        verts.push(vert)
       }
     }
 
