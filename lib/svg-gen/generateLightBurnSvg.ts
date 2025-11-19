@@ -1,26 +1,28 @@
-import { LightBurnBaseElement } from "../classes/LightBurnBaseElement"
+import type { INode } from "svgson"
+import { stringify } from "svgson"
 import { LightBurnProject } from "../classes/elements/LightBurnProject"
 import { ShapeBase } from "../classes/elements/shapes/ShapeBase"
-import { ShapeRect } from "../classes/elements/shapes/ShapeRect"
-import { ShapeEllipse } from "../classes/elements/shapes/ShapeEllipse"
-import { ShapePath } from "../classes/elements/shapes/ShapePath"
-import { ShapeGroup } from "../classes/elements/shapes/ShapeGroup"
 import { ShapeBitmap } from "../classes/elements/shapes/ShapeBitmap"
+import { ShapeEllipse } from "../classes/elements/shapes/ShapeEllipse"
+import { ShapeGroup } from "../classes/elements/shapes/ShapeGroup"
+import { ShapePath } from "../classes/elements/shapes/ShapePath"
+import { ShapeRect } from "../classes/elements/shapes/ShapeRect"
 import { ShapeText } from "../classes/elements/shapes/ShapeText"
-import { apply, matToSvg, emptyBox, boxUnion, addPts, type BBox, type Mat } from "./_math"
-
-function escapeXml(str: string): string {
-  return str
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&apos;")
-}
+import type { LightBurnBaseElement } from "../classes/LightBurnBaseElement"
+import {
+  addPts,
+  apply,
+  arrayToMatrix,
+  type BBox,
+  boxUnion,
+  emptyBox,
+  identity,
+  matToSvg,
+} from "./_math"
 
 function bboxOfShape(shape: ShapeBase): BBox {
-  const identity: Mat = [1, 0, 0, 1, 0, 0]
-  const xform = shape.xform || identity
+  const identityMat = identity()
+  const xform = shape.xform ? arrayToMatrix(shape.xform) : identityMat
 
   if (shape instanceof ShapeRect) {
     const w = shape.w || 0
@@ -31,7 +33,10 @@ function bboxOfShape(shape: ShapeBase): BBox {
       { x: w, y: h },
       { x: 0, y: h },
     ]
-    return addPts(emptyBox(), corners.map((p) => apply(xform, p)))
+    return addPts(
+      emptyBox(),
+      corners.map((p) => apply(xform, p)),
+    )
   }
 
   if (shape instanceof ShapeEllipse) {
@@ -43,7 +48,10 @@ function bboxOfShape(shape: ShapeBase): BBox {
       { x: 0, y: ry },
       { x: 0, y: -ry },
     ]
-    return addPts(emptyBox(), extremes.map((p) => apply(xform, p)))
+    return addPts(
+      emptyBox(),
+      extremes.map((p) => apply(xform, p)),
+    )
   }
 
   if (shape instanceof ShapeBitmap) {
@@ -55,7 +63,10 @@ function bboxOfShape(shape: ShapeBase): BBox {
       { x: w, y: h },
       { x: 0, y: h },
     ]
-    return addPts(emptyBox(), corners.map((p) => apply(xform, p)))
+    return addPts(
+      emptyBox(),
+      corners.map((p) => apply(xform, p)),
+    )
   }
 
   if (shape instanceof ShapePath) {
@@ -66,7 +77,9 @@ function bboxOfShape(shape: ShapeBase): BBox {
   if (shape instanceof ShapeText) {
     // Use backup path if available
     if (shape.backupPath) {
-      const pts = shape.backupPath.verts.map((v) => apply(xform, { x: v.x, y: v.y }))
+      const pts = shape.backupPath.verts.map((v) =>
+        apply(xform, { x: v.x, y: v.y }),
+      )
       return addPts(emptyBox(), pts)
     }
     // Fallback to a default size
@@ -89,31 +102,89 @@ function bboxOfShape(shape: ShapeBase): BBox {
   return emptyBox()
 }
 
-function svgForShape(shape: ShapeBase): string {
-  const identity: Mat = [1, 0, 0, 1, 0, 0]
-  const xform = shape.xform || identity
-  const transformAttr = `transform="${matToSvg(xform)}"`
+function svgForShape(shape: ShapeBase): INode {
+  const identityMat = identity()
+  const xform = shape.xform ? arrayToMatrix(shape.xform) : identityMat
+  const transform = matToSvg(xform)
 
   if (shape instanceof ShapeRect) {
     const w = shape.w || 0
     const h = shape.h || 0
     const cr = shape.cr || 0
-    return `<g ${transformAttr}>
-  <rect x="0" y="0" width="${w}" height="${h}" rx="${cr}" ry="${cr}" fill="none" stroke="black" />
-</g>`
+    return {
+      name: "g",
+      type: "element",
+      value: "",
+      attributes: { transform },
+      children: [
+        {
+          name: "rect",
+          type: "element",
+          value: "",
+          attributes: {
+            x: "0",
+            y: "0",
+            width: String(w),
+            height: String(h),
+            rx: String(cr),
+            ry: String(cr),
+            fill: "none",
+            stroke: "black",
+          },
+          children: [],
+        },
+      ],
+    }
   }
 
   if (shape instanceof ShapeEllipse) {
     const rx = shape.rx || 0
     const ry = shape.ry || 0
     if (rx === ry) {
-      return `<g ${transformAttr}>
-  <circle cx="0" cy="0" r="${rx}" fill="none" stroke="black" />
-</g>`
+      return {
+        name: "g",
+        type: "element",
+        value: "",
+        attributes: { transform },
+        children: [
+          {
+            name: "circle",
+            type: "element",
+            value: "",
+            attributes: {
+              cx: "0",
+              cy: "0",
+              r: String(rx),
+              fill: "none",
+              stroke: "black",
+            },
+            children: [],
+          },
+        ],
+      }
     }
-    return `<g ${transformAttr}>
-  <ellipse cx="0" cy="0" rx="${rx}" ry="${ry}" fill="none" stroke="black" />
-</g>`
+    return {
+      name: "g",
+      type: "element",
+      value: "",
+      attributes: { transform },
+      children: [
+        {
+          name: "ellipse",
+          type: "element",
+          value: "",
+          attributes: {
+            cx: "0",
+            cy: "0",
+            rx: String(rx),
+            ry: String(ry),
+            fill: "none",
+            stroke: "black",
+          },
+          children: [],
+        },
+      ],
+    }
   }
 
   if (shape instanceof ShapePath) {
@@ -144,38 +215,105 @@ function svgForShape(shape: ShapeBase): string {
       }
     }
 
-    return `<g ${transformAttr}>
-  <path d="${d}" fill="none" stroke="black" />
-</g>`
+    return {
+      name: "g",
+      type: "element",
+      value: "",
+      attributes: { transform },
+      children: [
+        {
+          name: "path",
+          type: "element",
+          value: "",
+          attributes: {
+            d,
+            fill: "none",
+            stroke: "black",
+          },
+          children: [],
+        },
+      ],
+    }
   }
 
   if (shape instanceof ShapeBitmap) {
     const w = shape.w || 0
     const h = shape.h || 0
     const data = shape.dataBase64 || ""
-    return `<g ${transformAttr}>
-  <image href="data:image/png;base64,${data}" x="0" y="0" width="${w}" height="${h}" />
-</g>`
+    return {
+      name: "g",
+      type: "element",
+      value: "",
+      attributes: { transform },
+      children: [
+        {
+          name: "image",
+          type: "element",
+          value: "",
+          attributes: {
+            href: `data:image/png;base64,${data}`,
+            x: "0",
+            y: "0",
+            width: String(w),
+            height: String(h),
+          },
+          children: [],
+        },
+      ],
+    }
   }
 
   if (shape instanceof ShapeText) {
-    const text = escapeXml(shape.text || "")
-    return `<g ${transformAttr}>
-  <text x="0" y="0" fill="black">${text}</text>
-</g>`
+    const text = shape.text || ""
+    return {
+      name: "g",
+      type: "element",
+      value: "",
+      attributes: { transform },
+      children: [
+        {
+          name: "text",
+          type: "element",
+          value: "",
+          attributes: {
+            x: "0",
+            y: "0",
+            fill: "black",
+          },
+          children: [
+            {
+              name: "",
+              type: "text",
+              value: text,
+              attributes: {},
+              children: [],
+            },
+          ],
+        },
+      ],
+    }
   }
 
   if (shape instanceof ShapeGroup) {
-    const childSvgs = shape.children
+    const childNodes = shape.children
       .filter((c) => c instanceof ShapeBase)
       .map((c) => svgForShape(c as ShapeBase))
-      .join("\n")
-    return `<g ${transformAttr}>
-${childSvgs}
-</g>`
+    return {
+      name: "g",
+      type: "element",
+      value: "",
+      attributes: { transform },
+      children: childNodes,
+    }
   }
 
-  return ""
+  return {
+    name: "g",
+    type: "element",
+    value: "",
+    attributes: {},
+    children: [],
+  }
 }
 
 export interface GenerateSvgOptions {
@@ -184,7 +322,7 @@ export interface GenerateSvgOptions {
 
 export function generateLightBurnSvg(
   root: LightBurnBaseElement | LightBurnBaseElement[],
-  options?: GenerateSvgOptions
+  options?: GenerateSvgOptions,
 ): string {
   const margin = options?.margin ?? 10
   const shapes: ShapeBase[] = []
@@ -237,13 +375,43 @@ export function generateLightBurnSvg(
   // Calculate the Y-axis flip point considering the viewBox offset
   const flipY = bbox.maxY + bbox.minY
 
-  // Generate shape SVGs
-  const shapeSvgs = shapes.map(svgForShape).join("\n")
+  // Generate shape nodes
+  const shapeNodes = shapes.map(svgForShape)
 
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="${viewBox}">
-  <rect width="100%" height="100%" fill="white"/>
-  <g transform="matrix(1 0 0 -1 0 ${flipY})">
-${shapeSvgs}
-  </g>
-</svg>`
+  // Build the SVG tree using svgson's INode structure
+  const svgTree: INode = {
+    name: "svg",
+    type: "element",
+    value: "",
+    attributes: {
+      xmlns: "http://www.w3.org/2000/svg",
+      width: String(width),
+      height: String(height),
+      viewBox,
+    },
+    children: [
+      {
+        name: "rect",
+        type: "element",
+        value: "",
+        attributes: {
+          width: "100%",
+          height: "100%",
+          fill: "white",
+        },
+        children: [],
+      },
+      {
+        name: "g",
+        type: "element",
+        value: "",
+        attributes: {
+          transform: `matrix(1 0 0 -1 0 ${flipY})`,
+        },
+        children: shapeNodes,
+      },
+    ],
+  }
+
+  return stringify(svgTree)
 }

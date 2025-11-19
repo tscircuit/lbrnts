@@ -1,29 +1,43 @@
-export type Mat = [a: number, b: number, c: number, d: number, tx: number, ty: number]
+import type { Matrix } from "transformation-matrix"
+import {
+  applyToPoint,
+  compose,
+  identity as matrixIdentity,
+  toSVG,
+} from "transformation-matrix"
+
+export type Mat = Matrix
 export type Pt = { x: number; y: number }
 
+// Convert array format [a, b, c, d, e, f] to Matrix object
+export function arrayToMatrix(
+  arr: [number, number, number, number, number, number],
+): Matrix {
+  const [a, b, c, d, e, f] = arr
+  return { a, b, c, d, e, f }
+}
+
+// Convert Matrix object to array format [a, b, c, d, e, f]
+export function matrixToArray(
+  m: Matrix,
+): [number, number, number, number, number, number] {
+  return [m.a, m.b, m.c, m.d, m.e, m.f]
+}
+
 export function apply(m: Mat, p: Pt): Pt {
-  const [a, b, c, d, tx, ty] = m
-  return {
-    x: a * p.x + c * p.y + tx,
-    y: b * p.x + d * p.y + ty,
-  }
+  return applyToPoint(m, p)
 }
 
 export function mul(m1: Mat, m2: Mat): Mat {
-  const [a1, b1, c1, d1, tx1, ty1] = m1
-  const [a2, b2, c2, d2, tx2, ty2] = m2
-  return [
-    a1 * a2 + c1 * b2,
-    b1 * a2 + d1 * b2,
-    a1 * c2 + c1 * d2,
-    b1 * c2 + d1 * d2,
-    a1 * tx2 + c1 * ty2 + tx1,
-    b1 * tx2 + d1 * ty2 + ty1,
-  ]
+  return compose(m1, m2)
 }
 
 export function matToSvg(m: Mat): string {
-  return `matrix(${m.join(" ")})`
+  return toSVG(m)
+}
+
+export function identity(): Mat {
+  return matrixIdentity()
 }
 
 export interface BBox {
