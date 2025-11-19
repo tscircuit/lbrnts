@@ -1,11 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="-10 -10 120 120">
-  <rect width="100%" height="100%" fill="white"/>
-  <g transform="matrix(1 0 0 -1 0 100)">
-<g transform="matrix(1 0 0 1 30.368866 -6.6921921)">
-  <text x="0" y="0" fill="black"></text>
-</g>
-<g transform="matrix(1 0 0 1 -400 -158)">
-
-</g>
-  </g>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="-10 -10 120 120" style="background-color: white"><g transform="matrix(1 0 0 -1 0 100)"><g transform="matrix(1,0,0,1,30.368866,-6.6921921)"><text x="0" y="0" fill="black"></text></g><g transform="matrix(1,0,0,1,-400,-158)"/></g></svg>
