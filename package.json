@@ -4,8 +4,11 @@
   "type": "module",
   "private": true,
   "devDependencies": {
+    "@biomejs/biome": "^2.3.6",
     "@types/bun": "latest",
-    "bun-match-svg": "^0.0.14"
+    "@types/xml2js": "^0.4.14",
+    "bun-match-svg": "^0.0.14",
+    "xml2js": "^0.6.2"
   },
   "peerDependencies": {
     "typescript": "^5"
