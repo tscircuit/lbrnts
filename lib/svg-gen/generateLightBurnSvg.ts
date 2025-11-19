@@ -186,7 +186,7 @@ export function generateLightBurnSvg(
   root: LightBurnBaseElement | LightBurnBaseElement[],
   options?: GenerateSvgOptions
 ): string {
-  const margin = options?.margin ?? 0
+  const margin = options?.margin ?? 10
   const shapes: ShapeBase[] = []
 
   // Collect shapes
@@ -228,12 +228,15 @@ export function generateLightBurnSvg(
   const viewBoxMinY = bbox.minY - margin
   const viewBox = `${viewBoxMinX} ${viewBoxMinY} ${width} ${height}`
 
+  // Calculate the Y-axis flip point considering the viewBox offset
+  const flipY = bbox.maxY + bbox.minY
+
   // Generate shape SVGs
   const shapeSvgs = shapes.map(svgForShape).join("\n")
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="${viewBox}">
   <rect width="100%" height="100%" fill="white"/>
-  <g transform="matrix(1 0 0 -1 0 ${contentHeight + 2 * margin})">
+  <g transform="matrix(1 0 0 -1 0 ${flipY})">
 ${shapeSvgs}
   </g>
 </svg>`

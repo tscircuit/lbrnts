@@ -107,7 +107,7 @@ describe("LightBurn parsing and SVG generation", () => {
     const project = LightBurnBaseElement.parse(xml)
 
     // Generate without margin
-    const svgNoMargin = generateLightBurnSvg(project)
+    const svgNoMargin = generateLightBurnSvg(project, { margin: 0 })
 
     // Generate with margin
     const svgWithMargin = generateLightBurnSvg(project, { margin: 10 })
