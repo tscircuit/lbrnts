@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LightBurnProject AppVersion="1.6.00" FormatVersion="1" MaterialHeight="0">
+    <Shape Type="Ellipse" CutIndex="0" Rx="30" Ry="20">
+        <XForm>1 0 0 1 100 75</XForm>
+    </Shape>
+</LightBurnProject>

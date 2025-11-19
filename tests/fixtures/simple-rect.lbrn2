@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LightBurnProject AppVersion="1.6.00" FormatVersion="1" MaterialHeight="0" MirrorX="False" MirrorY="False">
+    <Shape Type="Rect" CutIndex="0" W="100" H="50" Cr="0">
+        <XForm>1 0 0 1 50 25</XForm>
+    </Shape>
+</LightBurnProject>

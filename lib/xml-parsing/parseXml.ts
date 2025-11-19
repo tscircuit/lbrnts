@@ -3,9 +3,10 @@ import type { XmlJson } from "./xml-parsing-types"
 
 const parser = new XMLParser({
   ignoreAttributes: false, // keep attributes
-  attributeNamePrefix: "", // attributes go under '$' in your types; we'll remap below
+  attributeNamePrefix: "@_", // Use @_ prefix, we'll normalize to $ below
   allowBooleanAttributes: true,
   parseAttributeValue: false, // keep as strings; we'll coerce per-class
+  ignoreDeclaration: true, // ignore <?xml ...?> declaration
 })
 
 export const parseXml = (xml: string): XmlJson => {
