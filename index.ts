@@ -31,8 +31,8 @@ export { ShapeBitmap } from "./lib/classes/elements/shapes/ShapeBitmap"
 export { ShapeText } from "./lib/classes/elements/shapes/ShapeText"
 
 // Export SVG generation
-export { generateLightBurnSvg } from "./lib/svg-gen/generateLightBurnSvg"
-export type { GenerateSvgOptions } from "./lib/svg-gen/generateLightBurnSvg"
+export { generateLightBurnSvg } from "./lib/svg-gen/index"
+export type { GenerateSvgOptions } from "./lib/svg-gen/index"
 
 // Export types
 export type { XmlJson, XmlJsonElement, XmlJsonValue } from "./lib/xml-parsing/xml-parsing-types"
