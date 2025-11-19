@@ -20,16 +20,29 @@ export interface Prim {
 export class ShapePath extends ShapeBase {
   verts: Vert[] = []
   prims: Prim[] = []
+  isClosed: boolean = true // Whether the path is closed (default) or open
+
+  // Static registry to track shape templates by VertID/PrimID
+  private static templateRegistry: Map<string, { verts: Vert[]; prims: Prim[]; isClosed: boolean }> = new Map()
 
   constructor() {
     super()
     this.token = "Shape.Path"
   }
 
+  static clearTemplateRegistry() {
+    this.templateRegistry.clear()
+  }
+
   static override fromXmlJson(node: XmlJsonElement): ShapePath {
     const path = new ShapePath()
     const common = ShapeBase.readCommon(node)
     Object.assign(path, common)
+
+    // Get VertID and PrimID from attributes
+    const vertID = num((node.$ as any)?.VertID, undefined)
+    const primID = num((node.$ as any)?.PrimID, undefined)
+    const templateKey = `${vertID}_${primID}`
 
     // Parse VertList
     const vertList = (node as any).VertList
@@ -56,8 +69,21 @@ export class ShapePath extends ShapeBase {
     // Parse PrimList
     const primList = (node as any).PrimList
     if (primList) {
+      // Handle string format (e.g., "LineOpen", "LineClosed")
+      if (typeof primList === "string") {
+        // For string-based PrimLists, we need one primitive per vertex
+        // Each primitive describes how to get FROM that vertex TO the next vertex
+        // For an open line with N vertices, we need N-1 primitives (no closing segment)
+        // For a closed line with N vertices, we need N primitives (includes closing segment)
+        const isOpen = primList.includes("Open")
+        path.isClosed = !isOpen
+        const primCount = isOpen ? path.verts.length - 1 : path.verts.length
+        for (let i = 0; i < primCount; i++) {
+          path.prims.push({ type: 0 }) // LineTo
+        }
+      }
       // Handle structured XML format
-      if (primList.Prim) {
+      else if (primList.Prim) {
         const prims = Array.isArray(primList.Prim) ? primList.Prim : [primList.Prim]
         for (const p of prims) {
           if (p.$) {
@@ -75,9 +101,28 @@ export class ShapePath extends ShapeBase {
       path.prims = ShapePath.parseEncodedPrimPolyline(primPolyline)
     }
 
+    // If this shape has vert/prim data, register it as a template
+    if (path.verts.length > 0 && vertID !== undefined && primID !== undefined) {
+      ShapePath.templateRegistry.set(templateKey, {
+        verts: path.verts,
+        prims: path.prims,
+        isClosed: path.isClosed,
+      })
+    }
+
+    // If this shape has no vert/prim data but has VertID/PrimID, copy from template
+    if (path.verts.length === 0 && vertID !== undefined && primID !== undefined) {
+      const template = ShapePath.templateRegistry.get(templateKey)
+      if (template) {
+        // Deep copy the verts and prims from the template
+        path.verts = template.verts.map((v) => ({ ...v }))
+        path.prims = template.prims.map((p) => ({ ...p }))
+        path.isClosed = template.isClosed
+      }
+    }
+
     // If we have verts but no prims, generate prims based on PrimID or default to LineTo
     if (path.verts.length > 0 && path.prims.length === 0) {
-      const primID = num((node.$ as any)?.PrimID, undefined)
       path.prims = ShapePath.generatePrimsFromVerts(path.verts, primID)
     }
 

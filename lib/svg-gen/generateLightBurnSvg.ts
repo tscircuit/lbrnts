@@ -252,8 +252,8 @@ function svgForShape(shape: ShapeBase): INode {
       }
     }
 
-    // Close the path
-    if (d.length > 0) {
+    // Close the path only if it's a closed path
+    if (d.length > 0 && shape.isClosed) {
       d += " Z"
     }
 
@@ -405,18 +405,19 @@ export function generateLightBurnSvg(
     bbox = { minX: 0, minY: 0, maxX: 100, maxY: 100 }
   }
 
-  const contentWidth = bbox.maxX - bbox.minX
-  const contentHeight = bbox.maxY - bbox.minY
+  // LightBurn uses origin at (0, 0) at bottom-left
+  // Extend the viewBox to include origin and all content with margin
+  const viewBoxMinX = Math.min(0, bbox.minX) - margin
+  const viewBoxMinY = Math.min(0, bbox.minY) - margin
+  const viewBoxMaxX = Math.max(0, bbox.maxX) + margin
+  const viewBoxMaxY = Math.max(0, bbox.maxY) + margin
 
-  // Apply margin to dimensions and viewBox
-  const width = contentWidth + 2 * margin
-  const height = contentHeight + 2 * margin
-  const viewBoxMinX = bbox.minX - margin
-  const viewBoxMinY = bbox.minY - margin
+  const width = viewBoxMaxX - viewBoxMinX
+  const height = viewBoxMaxY - viewBoxMinY
   const viewBox = `${viewBoxMinX} ${viewBoxMinY} ${width} ${height}`
 
-  // Calculate the Y-axis flip point considering the viewBox offset
-  const flipY = bbox.maxY + bbox.minY
+  // Calculate the Y-axis flip point for the entire viewBox
+  const flipY = viewBoxMaxY + viewBoxMinY
 
   // Generate shape nodes
   const shapeNodes = shapes.map(svgForShape)

@@ -62,6 +62,13 @@ export class LightBurnBaseElement {
    * Parse an XML string into registered LightBurnBaseElement instances
    */
   static parse(xml: string): LightBurnBaseElement | LightBurnBaseElement[] {
+    // Clear any cached template data from previous parses
+    // This is necessary for shape instancing to work correctly
+    const ShapePath = LightBurnBaseElement.shapeRegistry["Shape.Path"]
+    if (ShapePath && typeof ShapePath.clearTemplateRegistry === "function") {
+      ShapePath.clearTemplateRegistry()
+    }
+
     const xmlJson: XmlJson = parseXml(xml)
     return LightBurnBaseElement.parseXmlJson(xmlJson)
   }
