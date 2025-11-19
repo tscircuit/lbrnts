@@ -64,12 +64,7 @@ export class ShapeBitmap extends ShapeBase {
       bitmap.h = num(node.$.H, undefined)
       bitmap.grayscale = boolish(node.$.Grayscale, undefined)
       bitmap.negative = boolish(node.$.Negative, undefined)
-    }
-
-    // Parse Data.Source for base64 image data
-    const data = (node as any).Data
-    if (data?.$?.Source) {
-      bitmap.dataBase64 = str(data.$.Source, undefined)
+      bitmap.dataBase64 = str(node.$.Data, undefined)
     }
 
     // Helper function to parse child element value
