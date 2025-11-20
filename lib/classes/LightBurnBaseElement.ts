@@ -13,6 +13,62 @@ export class LightBurnBaseElement {
     return []
   }
 
+  /**
+   * Get XML attributes for this element
+   * Subclasses should override this to provide their specific attributes
+   */
+  getXmlAttributes(): Record<string, string | number | boolean | undefined> {
+    return {}
+  }
+
+  /**
+   * Get the XML tag name for this element
+   * By default, uses the token, but can be overridden
+   */
+  getXmlTag(): string {
+    // For shapes, extract the shape type from token like "Shape.Rect" -> "Shape"
+    if (this.token.startsWith("Shape.")) {
+      return "Shape"
+    }
+    return this.token
+  }
+
+  /**
+   * Convert this element to XML string
+   */
+  toXml(indent = 0): string {
+    const indentStr = "    ".repeat(indent)
+    const tag = this.getXmlTag()
+    const attrs = this.getXmlAttributes()
+
+    // Build attribute string
+    const attrPairs: string[] = []
+    for (const [key, value] of Object.entries(attrs)) {
+      if (value !== undefined && value !== null) {
+        // Convert boolean to LightBurn format (True/False)
+        if (typeof value === "boolean") {
+          attrPairs.push(`${key}="${value ? "True" : "False"}"`)
+        } else {
+          attrPairs.push(`${key}="${value}"`)
+        }
+      }
+    }
+    const attrStr = attrPairs.length > 0 ? " " + attrPairs.join(" ") : ""
+
+    const children = this.getChildren()
+
+    if (children.length === 0) {
+      return `${indentStr}<${tag}${attrStr}/>`
+    }
+
+    const lines = [`${indentStr}<${tag}${attrStr}>`]
+    for (const child of children) {
+      lines.push(child.toXml(indent + 1))
+    }
+    lines.push(`${indentStr}</${tag}>`)
+    return lines.join("\n")
+  }
+
   getStringIndented(): string {
     return this.getString()
       .split("\n")
@@ -21,17 +77,11 @@ export class LightBurnBaseElement {
   }
 
   getString(): string {
-    const children = this.getChildren()
-    if (children.length === 0) {
-      return `(${this.token})`
+    // For LightBurnProject, return full XML with declaration
+    if (this.token === "LightBurnProject") {
+      return `<?xml version="1.0" encoding="UTF-8"?>\n${this.toXml()}`
     }
-
-    const lines = [`(${this.token}`]
-    for (const p of children) {
-      lines.push(p.getStringIndented())
-    }
-    lines.push(")")
-    return lines.join("\n")
+    return this.toXml()
   }
 
   get [Symbol.toStringTag](): string {

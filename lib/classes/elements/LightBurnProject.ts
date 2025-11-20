@@ -77,6 +77,19 @@ export class LightBurnProject extends LightBurnBaseElement {
   override getChildren(): LightBurnBaseElement[] {
     return this.children
   }
+
+  override getXmlAttributes(): Record<
+    string,
+    string | number | boolean | undefined
+  > {
+    return {
+      AppVersion: this.appVersion,
+      FormatVersion: this.formatVersion,
+      MaterialHeight: this.materialHeight,
+      MirrorX: this.mirrorX,
+      MirrorY: this.mirrorY,
+    }
+  }
 }
 
 LightBurnBaseElement.register("LightBurnProject", LightBurnProject)

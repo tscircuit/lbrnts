@@ -13,6 +13,19 @@ export class ShapeRect extends ShapeBase {
     this.token = "Shape.Rect"
   }
 
+  override getXmlAttributes(): Record<
+    string,
+    string | number | boolean | undefined
+  > {
+    return {
+      Type: "Rect",
+      ...this.getShapeXmlAttributes(),
+      W: this.w,
+      H: this.h,
+      Cr: this.cr,
+    }
+  }
+
   static override fromXmlJson(node: XmlJsonElement): ShapeRect {
     const rect = new ShapeRect()
     const common = ShapeBase.readCommon(node)

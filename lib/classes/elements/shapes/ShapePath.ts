@@ -54,6 +54,32 @@ export class ShapePath extends ShapeBase {
     ShapePath.templateRegistry.clear()
   }
 
+  override getXmlAttributes(): Record<
+    string,
+    string | number | boolean | undefined
+  > {
+    return {
+      Type: "Path",
+      ...this.getShapeXmlAttributes(),
+    }
+  }
+
+  override getChildren(): LightBurnBaseElement[] {
+    const children = super.getChildren() // Get XForm if present
+
+    // Add VertList
+    if (this.verts.length > 0) {
+      children.push(new VertListElement(this.verts))
+    }
+
+    // Add PrimList
+    if (this.prims.length > 0) {
+      children.push(new PrimListElement(this.prims, this.isClosed))
+    }
+
+    return children
+  }
+
   static override fromXmlJson(node: XmlJsonElement): ShapePath {
     const path = new ShapePath()
     const common = ShapeBase.readCommon(node)
@@ -78,11 +104,17 @@ export class ShapePath extends ShapeBase {
           : [vertList.Vert]
         for (const v of verts) {
           if (v.$) {
-            path.verts.push({
+            const vert: Vert = {
               x: num(v.$.x, 0),
               y: num(v.$.y, 0),
               c: num(v.$.c, undefined),
-            })
+            }
+            // Parse control points
+            if (v.$.c0x !== undefined) vert.c0x = num(v.$.c0x, undefined)
+            if (v.$.c0y !== undefined) vert.c0y = num(v.$.c0y, undefined)
+            if (v.$.c1x !== undefined) vert.c1x = num(v.$.c1x, undefined)
+            if (v.$.c1y !== undefined) vert.c1y = num(v.$.c1y, undefined)
+            path.verts.push(vert)
           }
         }
       }
@@ -267,6 +299,74 @@ export class ShapePath extends ShapeBase {
     }
 
     return prims
+  }
+}
+
+/**
+ * Special element to represent a VertList
+ */
+class VertListElement extends LightBurnBaseElement {
+  private verts: Vert[]
+
+  constructor(verts: Vert[]) {
+    super()
+    this.token = "VertList"
+    this.verts = verts
+  }
+
+  override toXml(indent = 0): string {
+    const indentStr = "    ".repeat(indent)
+    const innerIndent = "    ".repeat(indent + 1)
+
+    const lines = [`${indentStr}<VertList>`]
+    for (const vert of this.verts) {
+      let attrs = `x="${vert.x}" y="${vert.y}"`
+      if (vert.c !== undefined) {
+        attrs += ` c="${vert.c}"`
+      }
+      if (vert.c0x !== undefined) {
+        attrs += ` c0x="${vert.c0x}"`
+      }
+      if (vert.c0y !== undefined) {
+        attrs += ` c0y="${vert.c0y}"`
+      }
+      if (vert.c1x !== undefined) {
+        attrs += ` c1x="${vert.c1x}"`
+      }
+      if (vert.c1y !== undefined) {
+        attrs += ` c1y="${vert.c1y}"`
+      }
+      lines.push(`${innerIndent}<Vert ${attrs}/>`)
+    }
+    lines.push(`${indentStr}</VertList>`)
+    return lines.join("\n")
+  }
+}
+
+/**
+ * Special element to represent a PrimList
+ */
+class PrimListElement extends LightBurnBaseElement {
+  private prims: Prim[]
+  private isClosed: boolean
+
+  constructor(prims: Prim[], isClosed: boolean) {
+    super()
+    this.token = "PrimList"
+    this.prims = prims
+    this.isClosed = isClosed
+  }
+
+  override toXml(indent = 0): string {
+    const indentStr = "    ".repeat(indent)
+    const innerIndent = "    ".repeat(indent + 1)
+
+    const lines = [`${indentStr}<PrimList>`]
+    for (const prim of this.prims) {
+      lines.push(`${innerIndent}<Prim type="${prim.type}"/>`)
+    }
+    lines.push(`${indentStr}</PrimList>`)
+    return lines.join("\n")
   }
 }
 

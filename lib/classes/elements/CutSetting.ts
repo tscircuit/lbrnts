@@ -236,6 +236,51 @@ export class CutSetting extends LightBurnBaseElement {
     this._lineAngle = value
   }
 
+  override getXmlAttributes(): Record<
+    string,
+    string | number | boolean | undefined
+  > {
+    return {
+      type: this._type,
+    }
+  }
+
+  override getChildren(): LightBurnBaseElement[] {
+    const children: LightBurnBaseElement[] = []
+    const props = [
+      "index",
+      "name",
+      "priority",
+      "minPower",
+      "maxPower",
+      "minPower2",
+      "maxPower2",
+      "speed",
+      "kerf",
+      "zOffset",
+      "enablePowerRamp",
+      "rampLength",
+      "numPasses",
+      "zPerPass",
+      "perforate",
+      "dotMode",
+      "scanOpt",
+      "interval",
+      "angle",
+      "overScanning",
+      "lineAngle",
+    ]
+
+    for (const prop of props) {
+      const value = (this as any)[`_${prop}`]
+      if (value !== undefined) {
+        children.push(new CutSettingPropertyElement(prop, value))
+      }
+    }
+
+    return children
+  }
+
   static override fromXmlJson(node: XmlJsonElement): CutSetting {
     const cs = new CutSetting()
 
@@ -273,6 +318,26 @@ export class CutSetting extends LightBurnBaseElement {
     cs.lineAngle = num(getChildValue("lineAngle"), undefined)
 
     return cs
+  }
+}
+
+/**
+ * Special element to represent a CutSetting property with a Value attribute
+ */
+class CutSettingPropertyElement extends LightBurnBaseElement {
+  private propName: string
+  private propValue: any
+
+  constructor(propName: string, propValue: any) {
+    super()
+    this.token = propName
+    this.propName = propName
+    this.propValue = propValue
+  }
+
+  override toXml(indent = 0): string {
+    const indentStr = "    ".repeat(indent)
+    return `${indentStr}<${this.propName} Value="${this.propValue}"/>`
   }
 }
 

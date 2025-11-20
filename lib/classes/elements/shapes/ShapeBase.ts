@@ -16,6 +16,28 @@ export abstract class ShapeBase extends LightBurnBaseElement {
   locked?: boolean
   xform?: Mat
 
+  protected getShapeXmlAttributes(): Record<
+    string,
+    string | number | boolean | undefined
+  > {
+    return {
+      CutIndex: this.cutIndex,
+      Locked: this.locked,
+    }
+  }
+
+  override getChildren(): LightBurnBaseElement[] {
+    const children: LightBurnBaseElement[] = []
+
+    // Add XForm as a special child element if present
+    if (this.xform) {
+      const xformElement = new XFormElement(this.xform)
+      children.push(xformElement)
+    }
+
+    return children
+  }
+
   static readCommon(node: XmlJsonElement): {
     cutIndex?: number
     locked?: boolean
@@ -47,5 +69,24 @@ export abstract class ShapeBase extends LightBurnBaseElement {
     }
 
     return common
+  }
+}
+
+/**
+ * Special element to represent the XForm transformation matrix
+ */
+class XFormElement extends LightBurnBaseElement {
+  private mat: Mat
+
+  constructor(mat: Mat) {
+    super()
+    this.token = "XForm"
+    this.mat = mat
+  }
+
+  override toXml(indent = 0): string {
+    const indentStr = "    ".repeat(indent)
+    const value = this.mat.join(" ")
+    return `${indentStr}<XForm>${value}</XForm>`
   }
 }
