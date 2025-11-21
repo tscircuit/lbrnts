@@ -1,10 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import {
-  CutSetting,
-  LightBurnProject,
-  ShapePath,
-  ShapeRect,
-} from "../index"
+import { CutSetting, LightBurnProject, ShapePath, ShapeRect } from "../index"
 
 describe("getString() returns full LightBurn XML", () => {
   test("empty LightBurnProject", () => {

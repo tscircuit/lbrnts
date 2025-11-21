@@ -42,7 +42,10 @@ describe("XForm default values", () => {
   test("ShapePath with custom XForm", () => {
     const path = new ShapePath({
       cutIndex: 0,
-      verts: [{ x: 0, y: 0 }, { x: 10, y: 0 }],
+      verts: [
+        { x: 0, y: 0 },
+        { x: 10, y: 0 },
+      ],
       prims: [{ type: 0 }],
       isClosed: false,
       xform: [2, 0, 0, 2, 100, 50], // Scale by 2 and translate to (100, 50)
