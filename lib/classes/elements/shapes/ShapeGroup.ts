@@ -35,7 +35,10 @@ export class ShapeGroup extends ShapeBase {
   }
 
   override getChildren(): LightBurnBaseElement[] {
-    return this.children
+    // Get XForm from parent
+    const baseChildren = super.getChildren()
+    // Add group's children
+    return [...baseChildren, ...this.children]
   }
 }
 

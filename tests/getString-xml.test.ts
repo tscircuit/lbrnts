@@ -137,6 +137,7 @@ describe("getString() returns full LightBurn XML", () => {
               <numPasses Value="2"/>
           </CutSetting>
           <Shape Type="Path" CutIndex="0">
+              <XForm>1 0 0 1 0 0</XForm>
               <VertList>
                   <Vert x="-25" y="-25"/>
                   <Vert x="25" y="-25"/>
@@ -304,6 +305,7 @@ describe("getString() returns full LightBurn XML", () => {
 
     expect(path.getString()).toMatchInlineSnapshot(`
       "<Shape Type="Path" CutIndex="0">
+          <XForm>1 0 0 1 0 0</XForm>
           <VertList>
               <Vert x="0" y="-30"/>
               <Vert x="30" y="0" c="1" c0x="30" c0y="-16.5" c1x="30" c1y="-16.5"/>

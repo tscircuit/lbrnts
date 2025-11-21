@@ -23,7 +23,7 @@ export interface ShapePathInit {
   isClosed?: boolean
   cutIndex?: number
   locked?: boolean
-  xform?: Mat
+  xform?: Mat // Optional in init, will use default identity matrix if not provided
 }
 
 export class ShapePath extends ShapeBase {

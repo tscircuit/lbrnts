@@ -14,7 +14,7 @@ export type Mat = [
 export abstract class ShapeBase extends LightBurnBaseElement {
   cutIndex?: number
   locked?: boolean
-  xform?: Mat
+  xform: Mat = [1, 0, 0, 1, 0, 0] // Default identity matrix
 
   protected getShapeXmlAttributes(): Record<
     string,
@@ -29,11 +29,9 @@ export abstract class ShapeBase extends LightBurnBaseElement {
   override getChildren(): LightBurnBaseElement[] {
     const children: LightBurnBaseElement[] = []
 
-    // Add XForm as a special child element if present
-    if (this.xform) {
-      const xformElement = new XFormElement(this.xform)
-      children.push(xformElement)
-    }
+    // Always add XForm as a special child element (required by LightBurn)
+    const xformElement = new XFormElement(this.xform)
+    children.push(xformElement)
 
     return children
   }
@@ -41,9 +39,11 @@ export abstract class ShapeBase extends LightBurnBaseElement {
   static readCommon(node: XmlJsonElement): {
     cutIndex?: number
     locked?: boolean
-    xform?: Mat
+    xform: Mat
   } {
-    const common: { cutIndex?: number; locked?: boolean; xform?: Mat } = {}
+    const common: { cutIndex?: number; locked?: boolean; xform: Mat } = {
+      xform: [1, 0, 0, 1, 0, 0], // Default identity matrix
+    }
 
     if (node.$) {
       if (node.$.CutIndex !== undefined) {
@@ -54,7 +54,7 @@ export abstract class ShapeBase extends LightBurnBaseElement {
       }
     }
 
-    // Parse XForm if present
+    // Parse XForm if present, otherwise use default identity matrix
     const xformNode = (node as any).XForm
     if (xformNode) {
       // XForm could be a string directly or an object with _
