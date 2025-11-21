@@ -318,7 +318,10 @@ class VertListElement extends LightBurnBaseElement {
     const indentStr = "    ".repeat(indent)
 
     // Build compact lbrn2-style encoded string
-    // Format: V{x} {y}c{flag}c0x{value}c0y{value}c1x{value}c1y{value}...
+    // Format: V{x} {y}c{flag}c0x{value}c0y{value}c1x{value}c1y{value}
+    // where {value} can be either:
+    // - a single digit 0 or 1 (flag): c0x1 or c1x0
+    // - a decimal coordinate: c1x1.5871694 or c1y-12.3306
     let encoded = ""
     for (const vert of this.verts) {
       // Start with V followed by x y coordinates
@@ -329,7 +332,7 @@ class VertListElement extends LightBurnBaseElement {
         encoded += `c${vert.c}`
       }
 
-      // Add control point 0 coordinates
+      // Add control point 0 coordinates with c0x prefix
       if (vert.c0x !== undefined) {
         encoded += `c0x${vert.c0x}`
       }
@@ -337,7 +340,7 @@ class VertListElement extends LightBurnBaseElement {
         encoded += `c0y${vert.c0y}`
       }
 
-      // Add control point 1 coordinates
+      // Add control point 1 coordinates with c1x prefix
       if (vert.c1x !== undefined) {
         encoded += `c1x${vert.c1x}`
       }
@@ -364,14 +367,20 @@ class PrimListElement extends LightBurnBaseElement {
 
   override toXml(indent = 0): string {
     const indentStr = "    ".repeat(indent)
-    const innerIndent = "    ".repeat(indent + 1)
 
-    const lines = [`${indentStr}<PrimList>`]
-    for (const prim of this.prims) {
-      lines.push(`${innerIndent}<Prim type="${prim.type}"/>`)
+    // Build compact lbrn2-style encoded string
+    // Format: L{fromIdx} {toIdx}B{fromIdx} {toIdx}...
+    // where L = LineTo (type 0), B = BezierTo (type 1)
+    let encoded = ""
+    for (let i = 0; i < this.prims.length; i++) {
+      const prim = this.prims[i]!
+      const primType = prim.type === 0 ? "L" : "B"
+      const fromIdx = i
+      const toIdx = (i + 1) % this.prims.length // wrap around for closed paths
+      encoded += `${primType}${fromIdx} ${toIdx}`
     }
-    lines.push(`${indentStr}</PrimList>`)
-    return lines.join("\n")
+
+    return `${indentStr}<PrimList>${encoded}</PrimList>`
   }
 }
 
