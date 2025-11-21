@@ -104,8 +104,8 @@ describe("XML roundtrip tests", () => {
         expect(shape.verts).toHaveLength(4)
         expect(shape.prims).toHaveLength(4)
         expect(shape.isClosed).toBe(true)
-        expect(shape.verts[0]).toEqual({ x: -25, y: -25, c: 0 })
-        expect(shape.verts[1]).toEqual({ x: 25, y: -25, c: 0 })
+        expect(shape.verts[0]).toEqual({ x: -25, y: -25 })
+        expect(shape.verts[1]).toEqual({ x: 25, y: -25 })
       }
     }
   })

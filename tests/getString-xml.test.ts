@@ -138,12 +138,7 @@ describe("getString() returns full LightBurn XML", () => {
           </CutSetting>
           <Shape Type="Path" CutIndex="0">
               <XForm>1 0 0 1 0 0</XForm>
-              <VertList>
-                  <Vert x="-25" y="-25"/>
-                  <Vert x="25" y="-25"/>
-                  <Vert x="25" y="25"/>
-                  <Vert x="-25" y="25"/>
-              </VertList>
+              <VertList>V-25 -25V25 -25V25 25V-25 25</VertList>
               <PrimList>
                   <Prim type="0"/>
                   <Prim type="0"/>
@@ -306,13 +301,7 @@ describe("getString() returns full LightBurn XML", () => {
     expect(path.getString()).toMatchInlineSnapshot(`
       "<Shape Type="Path" CutIndex="0">
           <XForm>1 0 0 1 0 0</XForm>
-          <VertList>
-              <Vert x="0" y="-30"/>
-              <Vert x="30" y="0" c="1" c0x="30" c0y="-16.5" c1x="30" c1y="-16.5"/>
-              <Vert x="0" y="30" c="1" c0x="30" c0y="16.5" c1x="30" c1y="16.5"/>
-              <Vert x="-30" y="0" c="1" c0x="-30" c0y="16.5" c1x="-30" c1y="16.5"/>
-              <Vert x="0" y="-30" c="1" c0x="-30" c0y="-16.5" c1x="-30" c1y="-16.5"/>
-          </VertList>
+          <VertList>V0 -30V30 0c1c0x30c0y-16.5c1x30c1y-16.5V0 30c1c0x30c0y16.5c1x30c1y16.5V-30 0c1c0x-30c0y16.5c1x-30c1y16.5V0 -30c1c0x-30c0y-16.5c1x-30c1y-16.5</VertList>
           <PrimList>
               <Prim type="1"/>
               <Prim type="1"/>

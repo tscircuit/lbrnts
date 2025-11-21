@@ -74,7 +74,7 @@ export class ShapePath extends ShapeBase {
 
     // Add PrimList
     if (this.prims.length > 0) {
-      children.push(new PrimListElement(this.prims, this.isClosed))
+      children.push(new PrimListElement(this.prims))
     }
 
     return children
@@ -316,30 +316,37 @@ class VertListElement extends LightBurnBaseElement {
 
   override toXml(indent = 0): string {
     const indentStr = "    ".repeat(indent)
-    const innerIndent = "    ".repeat(indent + 1)
 
-    const lines = [`${indentStr}<VertList>`]
+    // Build compact lbrn2-style encoded string
+    // Format: V{x} {y}c{flag}c0x{value}c0y{value}c1x{value}c1y{value}...
+    let encoded = ""
     for (const vert of this.verts) {
-      let attrs = `x="${vert.x}" y="${vert.y}"`
+      // Start with V followed by x y coordinates
+      encoded += `V${vert.x} ${vert.y}`
+
+      // Add control point flag if present
       if (vert.c !== undefined) {
-        attrs += ` c="${vert.c}"`
+        encoded += `c${vert.c}`
       }
+
+      // Add control point 0 coordinates
       if (vert.c0x !== undefined) {
-        attrs += ` c0x="${vert.c0x}"`
+        encoded += `c0x${vert.c0x}`
       }
       if (vert.c0y !== undefined) {
-        attrs += ` c0y="${vert.c0y}"`
+        encoded += `c0y${vert.c0y}`
       }
+
+      // Add control point 1 coordinates
       if (vert.c1x !== undefined) {
-        attrs += ` c1x="${vert.c1x}"`
+        encoded += `c1x${vert.c1x}`
       }
       if (vert.c1y !== undefined) {
-        attrs += ` c1y="${vert.c1y}"`
+        encoded += `c1y${vert.c1y}`
       }
-      lines.push(`${innerIndent}<Vert ${attrs}/>`)
     }
-    lines.push(`${indentStr}</VertList>`)
-    return lines.join("\n")
+
+    return `${indentStr}<VertList>${encoded}</VertList>`
   }
 }
 
@@ -348,13 +355,11 @@ class VertListElement extends LightBurnBaseElement {
  */
 class PrimListElement extends LightBurnBaseElement {
   private prims: Prim[]
-  private isClosed: boolean
 
-  constructor(prims: Prim[], isClosed: boolean) {
+  constructor(prims: Prim[]) {
     super()
     this.token = "PrimList"
     this.prims = prims
-    this.isClosed = isClosed
   }
 
   override toXml(indent = 0): string {

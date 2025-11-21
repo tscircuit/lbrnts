@@ -58,6 +58,13 @@ describe("Build LightBurn project from scratch", () => {
     expect(svg).toContain("M") // Move command
     expect(svg).toContain("L") // Line commands
 
+    Bun.write(
+      "debug-outputs/basics17-from-scratch.lbrn2",
+      project.getString(),
+      {
+        createPath: true,
+      },
+    )
     // Match SVG snapshot
     await expect(svg).toMatchSvgSnapshot(import.meta.path)
   })
