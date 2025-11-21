@@ -32,6 +32,7 @@ jobs:
         
       - name: Upload diff.png artifacts
         uses: actions/upload-artifact@v4
+        if: failure()
         with:
           name: diff-pngs
           path: '*.diff.png'
