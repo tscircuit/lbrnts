@@ -74,7 +74,7 @@ export class ShapePath extends ShapeBase {
 
     // Add PrimList
     if (this.prims.length > 0) {
-      children.push(new PrimListElement(this.prims, this.isClosed))
+      children.push(new PrimListElement(this.prims))
     }
 
     return children
@@ -123,17 +123,24 @@ export class ShapePath extends ShapeBase {
     // Parse PrimList
     const primList = (node as any).PrimList
     if (primList) {
-      // Handle string format (e.g., "LineOpen", "LineClosed")
+      // Handle string format
       if (typeof primList === "string") {
-        // For string-based PrimLists, we need one primitive per vertex
-        // Each primitive describes how to get FROM that vertex TO the next vertex
-        // For an open line with N vertices, we need N-1 primitives (no closing segment)
-        // For a closed line with N vertices, we need N primitives (includes closing segment)
-        const isOpen = primList.includes("Open")
-        path.isClosed = !isOpen
-        const primCount = isOpen ? path.verts.length - 1 : path.verts.length
-        for (let i = 0; i < primCount; i++) {
-          path.prims.push({ type: 0 }) // LineTo
+        // Check if it's the compact encoded format (e.g., "L0 1B1 2L2 3")
+        if (primList.match(/[LB]\d+\s+\d+/)) {
+          path.prims = ShapePath.parseEncodedPrimList(primList)
+        }
+        // Handle simple string format (e.g., "LineOpen", "LineClosed")
+        else if (primList.includes("Line")) {
+          // For string-based PrimLists, we need one primitive per vertex
+          // Each primitive describes how to get FROM that vertex TO the next vertex
+          // For an open line with N vertices, we need N-1 primitives (no closing segment)
+          // For a closed line with N vertices, we need N primitives (includes closing segment)
+          const isOpen = primList.includes("Open")
+          path.isClosed = !isOpen
+          const primCount = isOpen ? path.verts.length - 1 : path.verts.length
+          for (let i = 0; i < primCount; i++) {
+            path.prims.push({ type: 0 }) // LineTo
+          }
         }
       }
       // Handle structured XML format
@@ -191,13 +198,13 @@ export class ShapePath extends ShapeBase {
 
   /**
    * Parse encoded VertList string format
-   * Format: V{x} {y}c{flag}x{flag}c{flag}x{c1x}c{flag}y{c1y}...
+   * Format: V{x} {y}c{flag}c0x{value}c0y{value}c1x{value}c1y{value}
    * Example: V2.1156745 -12.3306c0x1c1x1.5871694c1y-12.3306
    *
    * Control points are encoded as:
-   * - c0x{value}c0y{value} = control point 0 (when both present)
-   * - c1x{value}c1y{value} = control point 1 (when both present)
-   * - c{num}x{num} alone (like c0x1) = flag, not a coordinate
+   * - c0x{value}c0y{value} = control point 0 (outgoing handle when this vertex is START of Bezier)
+   * - c1x{value}c1y{value} = control point 1 (incoming handle when this vertex is END of Bezier)
+   * - c0x1 or c1x1 (value of exactly "1" without corresponding y) = "no handle" marker, not a coordinate
    */
   static parseEncodedVertList(encoded: string): Vert[] {
     const verts: Vert[] = []
@@ -220,28 +227,25 @@ export class ShapePath extends ShapeBase {
         }
 
         // Extract control point coordinates
-        // Only treat as coordinates if both x and y are present with decimal values
-        // c0x{decimal}c0y{decimal} or c1x{decimal}c1y{decimal}
+        // Pattern: c0x{value} followed optionally by c0y{value}
+        // If c0x is "1" without a c0y, it's a "no handle" marker
+        // If c0x has a corresponding c0y, they are real coordinates
         const c0xMatch = part.match(/c0x([-\d.]+)/)
         const c0yMatch = part.match(/c0y([-\d.]+)/)
-        const c1xMatch = part.match(/c1x([-\d.]+)/)
-        const c1yMatch = part.match(/c1y([-\d.]+)/)
 
-        // Only set control points if we have both x and y, and they're real coordinates (have decimals or are multi-digit)
-        if (
-          c0xMatch &&
-          c0yMatch &&
-          (c0xMatch[1]!.includes(".") || c0xMatch[1]!.length > 1)
-        ) {
+        // c0 is a real coordinate only if BOTH c0x and c0y are present
+        // (per spec, "c0x1" alone means "no left handle")
+        if (c0xMatch && c0yMatch) {
           vert.c0x = parseFloat(c0xMatch[1]!)
           vert.c0y = parseFloat(c0yMatch[1]!)
         }
 
-        if (
-          c1xMatch &&
-          c1yMatch &&
-          (c1xMatch[1]!.includes(".") || c1xMatch[1]!.length > 1)
-        ) {
+        const c1xMatch = part.match(/c1x([-\d.]+)/)
+        const c1yMatch = part.match(/c1y([-\d.]+)/)
+
+        // c1 is a real coordinate only if BOTH c1x and c1y are present
+        // (per spec, "c1x1" alone means "no right handle")
+        if (c1xMatch && c1yMatch) {
           vert.c1x = parseFloat(c1xMatch[1]!)
           vert.c1y = parseFloat(c1yMatch[1]!)
         }
@@ -251,6 +255,31 @@ export class ShapePath extends ShapeBase {
     }
 
     return verts
+  }
+
+  /**
+   * Parse encoded PrimList string format
+   * Format: {type}{fromIdx} {toIdx}{type}{fromIdx} {toIdx}...
+   * Example: L0 1B1 2L2 3B3 4
+   * where L = Line (type 0), B = Bezier (type 1)
+   */
+  static parseEncodedPrimList(encoded: string): Prim[] {
+    const prims: Prim[] = []
+    // Match each primitive: Letter followed by two numbers
+    // Pattern: (L|B)(\d+)\s+(\d+)
+    const primPattern = /([LB])(\d+)\s+(\d+)/g
+    const matches = encoded.matchAll(primPattern)
+
+    for (const match of matches) {
+      const primType = match[1]! // 'L' or 'B'
+      // Note: fromIdx and toIdx are in the encoded string but we don't store them
+      // The primitive's position in the array determines which vertices it connects
+      prims.push({
+        type: primType === "L" ? 0 : 1, // L=0 (Line), B=1 (Bezier)
+      })
+    }
+
+    return prims
   }
 
   /**
@@ -316,30 +345,40 @@ class VertListElement extends LightBurnBaseElement {
 
   override toXml(indent = 0): string {
     const indentStr = "    ".repeat(indent)
-    const innerIndent = "    ".repeat(indent + 1)
 
-    const lines = [`${indentStr}<VertList>`]
+    // Build compact lbrn2-style encoded string
+    // Format: V{x} {y}c{flag}c0x{value}c0y{value}c1x{value}c1y{value}
+    // where {value} can be either:
+    // - a single digit 0 or 1 (flag): c0x1 or c1x0
+    // - a decimal coordinate: c1x1.5871694 or c1y-12.3306
+    let encoded = ""
     for (const vert of this.verts) {
-      let attrs = `x="${vert.x}" y="${vert.y}"`
+      // Start with V followed by x y coordinates
+      encoded += `V${vert.x} ${vert.y}`
+
+      // Add control point flag if present
       if (vert.c !== undefined) {
-        attrs += ` c="${vert.c}"`
+        encoded += `c${vert.c}`
       }
+
+      // Add control point 0 coordinates with c0x prefix
       if (vert.c0x !== undefined) {
-        attrs += ` c0x="${vert.c0x}"`
+        encoded += `c0x${vert.c0x}`
       }
       if (vert.c0y !== undefined) {
-        attrs += ` c0y="${vert.c0y}"`
+        encoded += `c0y${vert.c0y}`
       }
+
+      // Add control point 1 coordinates with c1x prefix
       if (vert.c1x !== undefined) {
-        attrs += ` c1x="${vert.c1x}"`
+        encoded += `c1x${vert.c1x}`
       }
       if (vert.c1y !== undefined) {
-        attrs += ` c1y="${vert.c1y}"`
+        encoded += `c1y${vert.c1y}`
       }
-      lines.push(`${innerIndent}<Vert ${attrs}/>`)
     }
-    lines.push(`${indentStr}</VertList>`)
-    return lines.join("\n")
+
+    return `${indentStr}<VertList>${encoded}</VertList>`
   }
 }
 
@@ -348,25 +387,29 @@ class VertListElement extends LightBurnBaseElement {
  */
 class PrimListElement extends LightBurnBaseElement {
   private prims: Prim[]
-  private isClosed: boolean
 
-  constructor(prims: Prim[], isClosed: boolean) {
+  constructor(prims: Prim[]) {
     super()
     this.token = "PrimList"
     this.prims = prims
-    this.isClosed = isClosed
   }
 
   override toXml(indent = 0): string {
     const indentStr = "    ".repeat(indent)
-    const innerIndent = "    ".repeat(indent + 1)
 
-    const lines = [`${indentStr}<PrimList>`]
-    for (const prim of this.prims) {
-      lines.push(`${innerIndent}<Prim type="${prim.type}"/>`)
+    // Build compact lbrn2-style encoded string
+    // Format: L{fromIdx} {toIdx}B{fromIdx} {toIdx}...
+    // where L = LineTo (type 0), B = BezierTo (type 1)
+    let encoded = ""
+    for (let i = 0; i < this.prims.length; i++) {
+      const prim = this.prims[i]!
+      const primType = prim.type === 0 ? "L" : "B"
+      const fromIdx = i
+      const toIdx = (i + 1) % this.prims.length // wrap around for closed paths
+      encoded += `${primType}${fromIdx} ${toIdx}`
     }
-    lines.push(`${indentStr}</PrimList>`)
-    return lines.join("\n")
+
+    return `${indentStr}<PrimList>${encoded}</PrimList>`
   }
 }
 
