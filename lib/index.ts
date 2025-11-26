@@ -20,6 +20,7 @@ export * from "./classes/elements/shapes/ShapeBitmap"
 
 // SVG generation
 export * from "./svg-gen"
+export { polygonToShapePathData } from "./polygon-to-shape-path-data"
 
 // XML parsing utilities
 export * from "./xml-parsing/parseXml"

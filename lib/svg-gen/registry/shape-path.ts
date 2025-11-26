@@ -28,16 +28,30 @@ export const pathRenderer: ShapeRenderer<ShapePath> = {
     const stroke = colorForCutIndex(p.cutIndex)
 
     let d = ""
+    let subpathOpen = false
 
     // Process each primitive which describes the segment FROM vertex[i] TO vertex[i+1]
     for (let i = 0; i < p.prims.length; i++) {
       const prim = p.prims[i]!
-      const startV = p.verts[i]!
-      const endV = p.verts[(i + 1) % p.verts.length]!
+      const startV = p.verts[i]
+      const endV = p.verts[i + 1] ?? (p.isClosed ? p.verts[0] : undefined)
 
-      if (i === 0) {
-        // First vertex - move to start
+      if (!startV || !endV) continue
+
+      if (!subpathOpen && prim.type !== 2) {
+        // First vertex of the current subpath - move to start
         d += `M ${startV.x} ${startV.y}`
+        subpathOpen = true
+      }
+
+      if (prim.type === 2) {
+        // Move/Hop without drawing
+        if (p.isClosed && subpathOpen) {
+          d += " Z"
+        }
+        d += ` M ${endV.x} ${endV.y}`
+        subpathOpen = true
+        continue
       }
 
       if (prim.type === 0) {
@@ -54,10 +68,16 @@ export const pathRenderer: ShapeRenderer<ShapePath> = {
         // Use cubic bezier for two control points
         d += ` C ${c0x} ${c0y} ${c1x} ${c1y} ${endV.x} ${endV.y}`
       }
+
+      const nextPrim = p.prims[i + 1]
+      if (p.isClosed && (!nextPrim || nextPrim.type === 2)) {
+        d += " Z"
+        subpathOpen = false
+      }
     }
 
-    // Close the path only if it's a closed path
-    if (d.length > 0 && p.isClosed) {
+    // Close the path only if it's a closed path and a subpath remains open
+    if (d.length > 0 && p.isClosed && subpathOpen) {
       d += " Z"
     }
 

@@ -39,6 +39,8 @@ export { LightBurnBaseElement } from "./lib/classes/LightBurnBaseElement"
 export type { GenerateSvgOptions } from "./lib/svg-gen/index"
 // Export SVG generation
 export { generateLightBurnSvg } from "./lib/svg-gen/index"
+export type { ShapePathData } from "./lib/polygon-to-shape-path-data"
+export { polygonToShapePathData } from "./lib/polygon-to-shape-path-data"
 // Export types
 export type {
   XmlJson,

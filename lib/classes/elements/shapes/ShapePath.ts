@@ -15,6 +15,8 @@ export interface Vert {
 
 export interface Prim {
   type: number
+  // type meanings:
+  // 0 = LineTo, 1 = BezierTo, 2 = Move/Hop (pen up move)
 }
 
 export interface ShapePathInit {
@@ -74,7 +76,13 @@ export class ShapePath extends ShapeBase {
 
     // Add PrimList
     if (this.prims.length > 0) {
-      children.push(new PrimListElement(this.prims))
+      children.push(
+        new PrimListElement({
+          prims: this.prims,
+          isClosed: this.isClosed,
+          vertsLength: this.verts.length,
+        }),
+      )
     }
 
     return children
@@ -126,7 +134,7 @@ export class ShapePath extends ShapeBase {
       // Handle string format
       if (typeof primList === "string") {
         // Check if it's the compact encoded format (e.g., "L0 1B1 2L2 3")
-        if (primList.match(/[LB]\d+\s+\d+/)) {
+        if (primList.match(/[LBM]\d+\s+\d+/)) {
           path.prims = ShapePath.parseEncodedPrimList(primList)
         }
         // Handle simple string format (e.g., "LineOpen", "LineClosed")
@@ -266,16 +274,16 @@ export class ShapePath extends ShapeBase {
   static parseEncodedPrimList(encoded: string): Prim[] {
     const prims: Prim[] = []
     // Match each primitive: Letter followed by two numbers
-    // Pattern: (L|B)(\d+)\s+(\d+)
-    const primPattern = /([LB])(\d+)\s+(\d+)/g
+    // Pattern: (L|B|M)(\d+)\s+(\d+)
+    const primPattern = /([LBM])(\d+)\s+(\d+)/g
     const matches = encoded.matchAll(primPattern)
 
     for (const match of matches) {
-      const primType = match[1]! // 'L' or 'B'
+      const primType = match[1]!
       // Note: fromIdx and toIdx are in the encoded string but we don't store them
       // The primitive's position in the array determines which vertices it connects
       prims.push({
-        type: primType === "L" ? 0 : 1, // L=0 (Line), B=1 (Bezier)
+        type: primType === "L" ? 0 : primType === "B" ? 1 : 2, // L=0 (Line), B=1 (Bezier), M=2 (Move)
       })
     }
 
@@ -387,25 +395,43 @@ class VertListElement extends LightBurnBaseElement {
  */
 class PrimListElement extends LightBurnBaseElement {
   private prims: Prim[]
+  private isClosed: boolean
+  private vertsLength: number
 
-  constructor(prims: Prim[]) {
+  constructor({
+    prims,
+    isClosed,
+    vertsLength,
+  }: {
+    prims: Prim[]
+    isClosed: boolean
+    vertsLength: number
+  }) {
     super()
     this.token = "PrimList"
     this.prims = prims
+    this.isClosed = isClosed
+    this.vertsLength = vertsLength
   }
 
   override toXml(indent = 0): string {
     const indentStr = "    ".repeat(indent)
 
     // Build compact lbrn2-style encoded string
-    // Format: L{fromIdx} {toIdx}B{fromIdx} {toIdx}...
-    // where L = LineTo (type 0), B = BezierTo (type 1)
+    // Format: L{fromIdx} {toIdx}B{fromIdx} {toIdx}M{fromIdx} {toIdx}...
+    // where L = LineTo (type 0), B = BezierTo (type 1), M = Move (type 2)
+    let subpathStart = 0
     let encoded = ""
     for (let i = 0; i < this.prims.length; i++) {
       const prim = this.prims[i]!
-      const primType = prim.type === 0 ? "L" : "B"
+      const primType = prim.type === 0 ? "L" : prim.type === 1 ? "B" : "M"
       const fromIdx = i
-      const toIdx = (i + 1) % this.prims.length // wrap around for closed paths
+      const hasNextVertex = i + 1 < this.vertsLength
+      const toIdx = hasNextVertex ? i + 1 : this.isClosed ? subpathStart : i
+
+      if (prim.type === 2) {
+        subpathStart = toIdx
+      }
       encoded += `${primType}${fromIdx} ${toIdx}`
     }
 
