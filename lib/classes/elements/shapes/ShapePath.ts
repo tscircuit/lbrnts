@@ -421,12 +421,16 @@ class PrimListElement extends LightBurnBaseElement {
     // Format: L{fromIdx} {toIdx}B{fromIdx} {toIdx}M{fromIdx} {toIdx}...
     // where L = LineTo (type 0), B = BezierTo (type 1), M = Move (type 2)
     let subpathStart = 0
+    const loopLength =
+      this.isClosed && this.vertsLength === this.prims.length + 1
+        ? this.prims.length
+        : this.vertsLength
     let encoded = ""
     for (let i = 0; i < this.prims.length; i++) {
       const prim = this.prims[i]!
       const primType = prim.type === 0 ? "L" : prim.type === 1 ? "B" : "M"
       const fromIdx = i
-      const hasNextVertex = i + 1 < this.vertsLength
+      const hasNextVertex = i + 1 < loopLength
       const toIdx = hasNextVertex ? i + 1 : this.isClosed ? subpathStart : i
 
       if (prim.type === 2) {
