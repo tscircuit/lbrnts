@@ -9,14 +9,14 @@ test("Path fill with proper clipping - scan lines only inside path boundary", as
   const svg = generateLightBurnSvg(project)
 
   expect(svg).toContain("<svg")
-  
+
   // Should have scan lines
   expect(svg).toContain("<line")
   expect(svg).toContain('stroke-opacity="0.8"')
-  
+
   // Should have clipPath element to clip scan lines to path boundary
   expect(svg).toContain("<clipPath")
   expect(svg).toContain("clip-path")
-  
+
   await expect(svg).toMatchSvgSnapshot(import.meta.path)
 })

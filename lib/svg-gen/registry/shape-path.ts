@@ -87,22 +87,20 @@ export const pathRenderer: ShapeRenderer<ShapePath> = {
       }
 
       const fillLines = generateScanLines(bbox, fillSettings, stroke)
-      
+
       // Use the path as a clip-path to ensure scan lines only appear inside the shape
       // Generate a unique ID for this clip path
       const clipId = `clip-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
-      
+
       // Create clipPath definition
       const clipPath = {
         name: "clipPath",
         type: "element",
         value: "",
         attributes: { id: clipId },
-        children: [
-          leaf("path", { d }),
-        ],
+        children: [leaf("path", { d })],
       }
-      
+
       // Wrap scan lines in a group with clip-path
       const clippedGroup = {
         name: "g",
@@ -111,7 +109,7 @@ export const pathRenderer: ShapeRenderer<ShapePath> = {
         attributes: { "clip-path": `url(#${clipId})` },
         children: fillLines,
       }
-      
+
       children.push(clipPath)
       children.push(clippedGroup)
     }
