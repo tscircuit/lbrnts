@@ -23,12 +23,12 @@ export const groupRenderer: ShapeRenderer<ShapeGroup> = {
       .reduce((bb, c) => boxUnion(bb, bboxOfShape(c)), emptyBox())
   },
 
-  toSvg: (grp): INode => {
+  toSvg: (grp, cutSettings): INode => {
     const xform = grp.xform ? arrayToMatrix(grp.xform) : identity()
     const transform = matToSvg(xform)
     const children = grp.children
       .filter((c): c is ShapeBase => c instanceof ShapeBase)
-      .map(svgForShape)
+      .map((c) => svgForShape(c, cutSettings))
     return g({ transform }, children)
   },
 }

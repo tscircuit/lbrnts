@@ -25,6 +25,7 @@ export interface CutSettingInit {
   angle?: number
   overScanning?: number
   lineAngle?: number
+  crossHatch?: boolean
 }
 
 export class CutSetting extends LightBurnBaseElement {
@@ -50,6 +51,7 @@ export class CutSetting extends LightBurnBaseElement {
   private _angle?: number
   private _overScanning?: number
   private _lineAngle?: number
+  private _crossHatch?: boolean
 
   constructor(init?: CutSettingInit) {
     super()
@@ -79,6 +81,7 @@ export class CutSetting extends LightBurnBaseElement {
       if (init.overScanning !== undefined)
         this._overScanning = init.overScanning
       if (init.lineAngle !== undefined) this._lineAngle = init.lineAngle
+      if (init.crossHatch !== undefined) this._crossHatch = init.crossHatch
     }
   }
 
@@ -236,6 +239,13 @@ export class CutSetting extends LightBurnBaseElement {
     this._lineAngle = value
   }
 
+  get crossHatch(): boolean | undefined {
+    return this._crossHatch
+  }
+  set crossHatch(value: boolean | undefined) {
+    this._crossHatch = value
+  }
+
   override getXmlAttributes(): Record<
     string,
     string | number | boolean | undefined
@@ -269,6 +279,7 @@ export class CutSetting extends LightBurnBaseElement {
       "angle",
       "overScanning",
       "lineAngle",
+      "crossHatch",
     ]
 
     for (const prop of props) {
@@ -316,6 +327,7 @@ export class CutSetting extends LightBurnBaseElement {
     cs.angle = num(getChildValue("angle"), undefined)
     cs.overScanning = num(getChildValue("overScanning"), undefined)
     cs.lineAngle = num(getChildValue("lineAngle"), undefined)
+    cs.crossHatch = boolish(getChildValue("crossHatch"), undefined)
 
     return cs
   }

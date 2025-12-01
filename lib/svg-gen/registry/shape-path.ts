@@ -1,4 +1,5 @@
 import type { INode } from "svgson"
+import type { CutSetting } from "../../classes/elements/CutSetting"
 import { ShapePath } from "../../classes/elements/shapes/ShapePath"
 import {
   addPts,
@@ -9,6 +10,7 @@ import {
   identity,
   matToSvg,
 } from "../_math"
+import { generateScanLines } from "../fill-patterns"
 import { g, leaf } from "../node-helpers"
 import { colorForCutIndex } from "../palette"
 import type { ShapeRenderer } from "./index"
@@ -22,14 +24,15 @@ export const pathRenderer: ShapeRenderer<ShapePath> = {
     return addPts(emptyBox(), pts)
   },
 
-  toSvg: (p): INode => {
+  toSvg: (p, cutSettings): INode => {
     const xform = p.xform ? arrayToMatrix(p.xform) : identity()
     const transform = matToSvg(xform)
     const stroke = colorForCutIndex(p.cutIndex)
 
-    let d = ""
+    const children: INode[] = []
 
-    // Process each primitive which describes the segment FROM vertex[i] TO vertex[i+1]
+    // Build the path data string first (we'll need it for both outline and clipping)
+    let d = ""
     for (let i = 0; i < p.prims.length; i++) {
       const prim = p.prims[i]!
       const startV = p.verts[i]!
@@ -61,13 +64,68 @@ export const pathRenderer: ShapeRenderer<ShapePath> = {
       d += " Z"
     }
 
-    return g({ transform }, [
+    // Get cut settings for this shape to determine if we should show fill
+    const cutSetting =
+      p.cutIndex !== undefined ? cutSettings.get(p.cutIndex) : undefined
+    // Only show fill for closed paths in "Scan" or "Scan+Cut" modes
+    const shouldShowFill =
+      p.isClosed &&
+      cutSetting &&
+      (cutSetting.type === "Scan" || cutSetting.type === "Scan+Cut")
+
+    if (shouldShowFill && cutSetting) {
+      // Calculate bounding box of the path
+      const bbox = addPts(
+        emptyBox(),
+        p.verts.map((v) => ({ x: v.x, y: v.y })),
+      )
+
+      const fillSettings = {
+        interval: cutSetting.interval || 0.1,
+        angle: cutSetting.angle || 0,
+        crossHatch: cutSetting.crossHatch || false,
+      }
+
+      const fillLines = generateScanLines(bbox, fillSettings, stroke)
+      
+      // Use the path as a clip-path to ensure scan lines only appear inside the shape
+      // Generate a unique ID for this clip path
+      const clipId = `clip-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+      
+      // Create clipPath definition
+      const clipPath = {
+        name: "clipPath",
+        type: "element",
+        value: "",
+        attributes: { id: clipId },
+        children: [
+          leaf("path", { d }),
+        ],
+      }
+      
+      // Wrap scan lines in a group with clip-path
+      const clippedGroup = {
+        name: "g",
+        type: "element",
+        value: "",
+        attributes: { "clip-path": `url(#${clipId})` },
+        children: fillLines,
+      }
+      
+      children.push(clipPath)
+      children.push(clippedGroup)
+    }
+
+    // Always add the outline
+    children.push(
       leaf("path", {
         d,
         fill: "none",
         stroke,
         "stroke-width": "0.1",
       }),
-    ])
+    )
+
+    return g({ transform }, children)
   },
 }

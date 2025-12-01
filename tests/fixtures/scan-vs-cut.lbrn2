@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LightBurnProject AppVersion="1.0.0" FormatVersion="1" MaterialHeight="0">
+    <CutSetting type="Cut">
+        <index Value="0"/>
+        <name Value="Cupper cut"/>
+        <minPower Value="80"/>
+        <maxPower Value="80"/>
+        <speed Value="100"/>
+        <priority Value="0"/>
+    </CutSetting>
+        <CutSetting type="Cut">
+        <index Value="1"/>
+        <name Value="Through board"/>
+        <minPower Value="80"/>
+        <maxPower Value="80"/>
+        <speed Value="50"/>
+        <priority Value="0"/>
+    </CutSetting>
+    <CutSetting type="Scan">
+        <index Value="2"/>
+        <name Value="Filled Pad"/>
+        <minPower Value="50"/>
+        <maxPower Value="50"/>
+        <speed Value="150"/>
+        <priority Value="1"/>
+        <interval Value="0.2"/>
+        <angle Value="45"/>
+        <crossHatch Value="10"/>
+    </CutSetting>
+    
+    
+    <!-- Board outline -->
+    <Shape Type="Rect" CutIndex="1" W="100" H="80">
+        <XForm>1 0 0 1 0 0</XForm>
+    </Shape>
+    
+    <!-- Pad 1: Cut mode (outline only) -->
+    <Shape Type="Rect" CutIndex="0" W="20" H="15" >
+        <XForm>1 0 0 1 20 20</XForm>
+    </Shape>
+    
+    <!-- Pad 2: Scan mode (filled with scan lines) -->
+    <Shape Type="Rect" CutIndex="2" W="20" H="15" >
+        <XForm>1 0 0 1 60 20</XForm>
+    </Shape>
+</LightBurnProject>

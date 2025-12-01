@@ -1,4 +1,5 @@
 import type { INode } from "svgson"
+import type { CutSetting } from "../../classes/elements/CutSetting"
 import type { ShapeBase } from "../../classes/elements/shapes/ShapeBase"
 import { type BBox, boxUnion, emptyBox } from "../_math"
 import { bitmapRenderer } from "./shape-bitmap"
@@ -11,7 +12,7 @@ import { textRenderer } from "./shape-text"
 export interface ShapeRenderer<T extends ShapeBase = ShapeBase> {
   match(shape: ShapeBase): shape is T
   bbox(shape: T): BBox
-  toSvg(shape: T): INode
+  toSvg(shape: T, cutSettings: Map<number, CutSetting>): INode
 }
 
 const REGISTRY: ShapeRenderer[] = [
@@ -33,14 +34,20 @@ export function bboxOfShape(shape: ShapeBase): BBox {
   return findRenderer(shape).bbox(shape as any)
 }
 
-export function svgForShape(shape: ShapeBase): INode {
-  return findRenderer(shape).toSvg(shape as any)
+export function svgForShape(
+  shape: ShapeBase,
+  cutSettings: Map<number, CutSetting>,
+): INode {
+  return findRenderer(shape).toSvg(shape as any, cutSettings)
 }
 
 export function measure(shapes: ShapeBase[]): BBox {
   return shapes.reduce((acc, s) => boxUnion(acc, bboxOfShape(s)), emptyBox())
 }
 
-export function renderAll(shapes: ShapeBase[]): INode[] {
-  return shapes.map(svgForShape)
+export function renderAll(
+  shapes: ShapeBase[],
+  cutSettings: Map<number, CutSetting>,
+): INode[] {
+  return shapes.map((s) => svgForShape(s, cutSettings))
 }

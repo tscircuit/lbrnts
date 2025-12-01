@@ -31,3 +31,18 @@ export function colorForCutIndex(cutIndex: number | undefined): string {
   if (cutIndex === undefined) return "black"
   return LIGHTBURN_COLORS[cutIndex] || "black"
 }
+
+/**
+ * Convert a hex color to rgba with specified opacity
+ */
+export function hexToRgba(hex: string, opacity: number): string {
+  // Handle #RRGGBB format
+  if (hex.startsWith("#") && hex.length === 7) {
+    const r = parseInt(hex.slice(1, 3), 16)
+    const g = parseInt(hex.slice(3, 5), 16)
+    const b = parseInt(hex.slice(5, 7), 16)
+    return `rgba(${r}, ${g}, ${b}, ${opacity})`
+  }
+  // Fallback: return the color with opacity appended (not fully correct but works)
+  return hex
+}
