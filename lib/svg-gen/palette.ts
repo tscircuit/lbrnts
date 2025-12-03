@@ -1,17 +1,17 @@
 // LightBurn standard color palette
 const LIGHTBURN_COLORS: Record<number, string> = {
-  0: "#000000", // C00 - Black
+  0: "#FF0000", // C00 - Red
   1: "#0000FF", // C01 - Blue
-  2: "#FF0000", // C02 - Red
-  3: "#00FF00", // C03 - Green
+  2: "#cb04cbff", // C02 - Magenta
+  3: "#008000", // C03 - Dark Green
   4: "#FFFF00", // C04 - Yellow
   5: "#FF8000", // C05 - Orange
   6: "#00FFFF", // C06 - Cyan
-  7: "#FF00FF", // C07 - Magenta
+  7: "#000000", // C07 - Black
   8: "#C0C0C0", // C08 - Light Gray
   9: "#808080", // C09 - Gray
   10: "#800000", // C10 - Maroon
-  11: "#008000", // C11 - Dark Green
+  11: "#00FF00", // C11 - Green
   12: "#000080", // C12 - Navy
   13: "#808000", // C13 - Olive
   14: "#800080", // C14 - Purple
