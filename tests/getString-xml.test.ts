@@ -274,6 +274,28 @@ describe("getString() returns full LightBurn XML", () => {
     `)
   })
 
+  test("CutSetting with galvo parameters", () => {
+    const cutSetting = new CutSetting({
+      index: 0,
+      name: "Copper Cut",
+      speed: 300,
+      numPasses: 100,
+      frequency: 20000,
+      pulseWidth: 1e-9,
+    })
+
+    expect(cutSetting.getString()).toMatchInlineSnapshot(`
+      "<CutSetting type="Cut">
+          <index Value="0"/>
+          <name Value="Copper Cut"/>
+          <speed Value="300"/>
+          <numPasses Value="100"/>
+          <frequency Value="20000"/>
+          <pulseWidth Value="0.000000001"/>
+      </CutSetting>"
+    `)
+  })
+
   test("ShapePath with bezier curves", () => {
     const path = new ShapePath({
       cutIndex: 0,
