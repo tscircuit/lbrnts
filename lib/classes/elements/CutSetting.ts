@@ -371,9 +371,21 @@ class CutSettingPropertyElement extends LightBurnBaseElement {
     this.propValue = propValue
   }
 
+  private formatValue(value: any): string {
+    if (typeof value === "number") {
+      // For very small numbers, use decimal notation to match LightBurn format
+      if (value !== 0 && Math.abs(value) < 0.001) {
+        return value.toFixed(9).replace(/\.?0+$/, "")
+      }
+      // For other numbers, use default string representation
+      return value.toString()
+    }
+    return String(value)
+  }
+
   override toXml(indent = 0): string {
     const indentStr = "    ".repeat(indent)
-    return `${indentStr}<${this.propName} Value="${this.propValue}"/>`
+    return `${indentStr}<${this.propName} Value="${this.formatValue(this.propValue)}"/>`
   }
 }
 

@@ -291,7 +291,7 @@ describe("getString() returns full LightBurn XML", () => {
           <speed Value="300"/>
           <numPasses Value="100"/>
           <frequency Value="20000"/>
-          <pulseWidth Value="1e-9"/>
+          <pulseWidth Value="0.000000001"/>
       </CutSetting>"
     `)
   })
