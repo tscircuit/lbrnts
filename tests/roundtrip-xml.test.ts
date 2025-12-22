@@ -110,6 +110,42 @@ describe("XML roundtrip tests", () => {
     }
   })
 
+  test("CutSetting roundtrip with galvo parameters", () => {
+    const cutSetting = new CutSetting({
+      index: 0,
+      name: "Board Cut",
+      speed: 20,
+      numPasses: 100,
+      frequency: 20000,
+      pulseWidth: 1e-9,
+    })
+
+    const project = new LightBurnProject({
+      appVersion: "1.7.03",
+      formatVersion: "1",
+      children: [cutSetting],
+    })
+
+    const xml = project.getString()
+    const parsed = LightBurnBaseElement.parse(xml)
+
+    expect(parsed).toBeInstanceOf(LightBurnProject)
+    if (parsed instanceof LightBurnProject) {
+      expect(parsed.children).toHaveLength(1)
+
+      const cs = parsed.children[0]
+      expect(cs).toBeInstanceOf(CutSetting)
+      if (cs instanceof CutSetting) {
+        expect(cs.index).toBe(0)
+        expect(cs.name).toBe("Board Cut")
+        expect(cs.speed).toBe(20)
+        expect(cs.numPasses).toBe(100)
+        expect(cs.frequency).toBe(20000)
+        expect(cs.pulseWidth).toBe(1e-9)
+      }
+    }
+  })
+
   test("Roundtrip with bezier curves", () => {
     const path = new ShapePath({
       cutIndex: 0,

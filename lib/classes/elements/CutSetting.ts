@@ -26,6 +26,8 @@ export interface CutSettingInit {
   overScanning?: number
   lineAngle?: number
   crossHatch?: boolean
+  frequency?: number
+  pulseWidth?: number
 }
 
 export class CutSetting extends LightBurnBaseElement {
@@ -52,6 +54,8 @@ export class CutSetting extends LightBurnBaseElement {
   private _overScanning?: number
   private _lineAngle?: number
   private _crossHatch?: boolean
+  private _frequency?: number
+  private _pulseWidth?: number
 
   constructor(init?: CutSettingInit) {
     super()
@@ -82,6 +86,8 @@ export class CutSetting extends LightBurnBaseElement {
         this._overScanning = init.overScanning
       if (init.lineAngle !== undefined) this._lineAngle = init.lineAngle
       if (init.crossHatch !== undefined) this._crossHatch = init.crossHatch
+      if (init.frequency !== undefined) this._frequency = init.frequency
+      if (init.pulseWidth !== undefined) this._pulseWidth = init.pulseWidth
     }
   }
 
@@ -246,6 +252,20 @@ export class CutSetting extends LightBurnBaseElement {
     this._crossHatch = value
   }
 
+  get frequency(): number | undefined {
+    return this._frequency
+  }
+  set frequency(value: number | undefined) {
+    this._frequency = value
+  }
+
+  get pulseWidth(): number | undefined {
+    return this._pulseWidth
+  }
+  set pulseWidth(value: number | undefined) {
+    this._pulseWidth = value
+  }
+
   override getXmlAttributes(): Record<
     string,
     string | number | boolean | undefined
@@ -280,6 +300,8 @@ export class CutSetting extends LightBurnBaseElement {
       "overScanning",
       "lineAngle",
       "crossHatch",
+      "frequency",
+      "pulseWidth",
     ]
 
     for (const prop of props) {
@@ -328,6 +350,8 @@ export class CutSetting extends LightBurnBaseElement {
     cs.overScanning = num(getChildValue("overScanning"), undefined)
     cs.lineAngle = num(getChildValue("lineAngle"), undefined)
     cs.crossHatch = boolish(getChildValue("crossHatch"), undefined)
+    cs.frequency = num(getChildValue("frequency"), undefined)
+    cs.pulseWidth = num(getChildValue("pulseWidth"), undefined)
 
     return cs
   }
