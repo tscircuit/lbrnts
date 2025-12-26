@@ -86,7 +86,12 @@ export const pathRenderer: ShapeRenderer<ShapePath> = {
         crossHatch: cutSetting.crossHatch || false,
       }
 
-      const fillLines = generateScanLines(bbox, fillSettings, stroke, options.strokeWidth)
+      const fillLines = generateScanLines(
+        bbox,
+        fillSettings,
+        stroke,
+        options.strokeWidth,
+      )
 
       // Use the path as a clip-path to ensure scan lines only appear inside the shape
       // Generate a unique ID for this clip path

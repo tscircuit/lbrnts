@@ -66,7 +66,12 @@ export const ellipseRenderer: ShapeRenderer<ShapeEllipse> = {
         crossHatch: cutSetting.crossHatch || false,
       }
 
-      const fillLines = generateScanLines(localBBox, fillSettings, stroke, options.strokeWidth)
+      const fillLines = generateScanLines(
+        localBBox,
+        fillSettings,
+        stroke,
+        options.strokeWidth,
+      )
       children.push(...fillLines)
     }
 

@@ -17,7 +17,11 @@ export interface RenderOptions {
 export interface ShapeRenderer<T extends ShapeBase = ShapeBase> {
   match(shape: ShapeBase): shape is T
   bbox(shape: T): BBox
-  toSvg(shape: T, cutSettings: Map<number, CutSetting>, options: RenderOptions): INode
+  toSvg(
+    shape: T,
+    cutSettings: Map<number, CutSetting>,
+    options: RenderOptions,
+  ): INode
 }
 
 const REGISTRY: ShapeRenderer[] = [
@@ -57,7 +61,8 @@ export function renderAll(
   svgOptions?: GenerateSvgOptions,
 ): INode[] {
   const renderOptions: RenderOptions = {
-    strokeWidth: svgOptions?.defaultStrokeWidth ?? DEFAULT_OPTIONS.defaultStrokeWidth,
+    strokeWidth:
+      svgOptions?.defaultStrokeWidth ?? DEFAULT_OPTIONS.defaultStrokeWidth,
   }
   return shapes.map((s) => svgForShape(s, cutSettings, renderOptions))
 }
