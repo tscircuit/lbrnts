@@ -28,16 +28,20 @@ export function computeLayout(
   const maxX = Math.max(0, bbox.maxX) + margin
   const maxY = Math.max(0, bbox.maxY) + margin
 
-  const width = maxX - minX
-  const height = maxY - minY
-  const viewBox = `${minX} ${minY} ${width} ${height}`
+  const contentWidth = maxX - minX
+  const contentHeight = maxY - minY
+  const viewBox = `${minX} ${minY} ${contentWidth} ${contentHeight}`
   const flipY = maxY + minY
+
+  // Use provided dimensions if both are specified, otherwise use content size
+  const width = options?.width ?? contentWidth
+  const height = options?.height ?? contentHeight
 
   return {
     viewBox,
     width,
     height,
     flipY,
-    bg: { x: minX, y: minY, width, height },
+    bg: { x: minX, y: minY, width: contentWidth, height: contentHeight },
   }
 }
