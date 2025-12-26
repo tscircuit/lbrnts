@@ -10,7 +10,7 @@ import {
   matToSvg,
 } from "../_math"
 import { g } from "../node-helpers"
-import type { ShapeRenderer } from "./index"
+import type { RenderOptions, ShapeRenderer } from "./index"
 import { bboxOfShape, svgForShape } from "./index"
 
 export const groupRenderer: ShapeRenderer<ShapeGroup> = {
@@ -23,12 +23,12 @@ export const groupRenderer: ShapeRenderer<ShapeGroup> = {
       .reduce((bb, c) => boxUnion(bb, bboxOfShape(c)), emptyBox())
   },
 
-  toSvg: (grp, cutSettings): INode => {
+  toSvg: (grp, cutSettings, options): INode => {
     const xform = grp.xform ? arrayToMatrix(grp.xform) : identity()
     const transform = matToSvg(xform)
     const children = grp.children
       .filter((c): c is ShapeBase => c instanceof ShapeBase)
-      .map((c) => svgForShape(c, cutSettings))
+      .map((c) => svgForShape(c, cutSettings, options))
     return g({ transform }, children)
   },
 }

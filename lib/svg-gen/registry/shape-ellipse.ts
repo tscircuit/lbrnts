@@ -13,7 +13,7 @@ import {
 import { generateScanLines } from "../fill-patterns"
 import { g, leaf } from "../node-helpers"
 import { colorForCutIndex } from "../palette"
-import type { ShapeRenderer } from "./index"
+import type { RenderOptions, ShapeRenderer } from "./index"
 
 export const ellipseRenderer: ShapeRenderer<ShapeEllipse> = {
   match: (s): s is ShapeEllipse => s instanceof ShapeEllipse,
@@ -34,7 +34,7 @@ export const ellipseRenderer: ShapeRenderer<ShapeEllipse> = {
     )
   },
 
-  toSvg: (el, cutSettings): INode => {
+  toSvg: (el, cutSettings, options): INode => {
     const xform = el.xform ? arrayToMatrix(el.xform) : identity()
     const transform = matToSvg(xform)
     const rx = el.rx || 0
@@ -66,7 +66,7 @@ export const ellipseRenderer: ShapeRenderer<ShapeEllipse> = {
         crossHatch: cutSetting.crossHatch || false,
       }
 
-      const fillLines = generateScanLines(localBBox, fillSettings, stroke)
+      const fillLines = generateScanLines(localBBox, fillSettings, stroke, options.strokeWidth)
       children.push(...fillLines)
     }
 

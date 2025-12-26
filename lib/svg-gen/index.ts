@@ -17,7 +17,7 @@ export function generateLightBurnSvg(
   const cutSettings = collectCutSettings(root)
   const bbox = measure(shapes)
   const layout = computeLayout(bbox, options)
-  const nodes = renderAll(shapes, cutSettings)
+  const nodes = renderAll(shapes, cutSettings, options)
   const svgTree = assembleSvg(nodes, layout)
   return stringify(svgTree)
 }

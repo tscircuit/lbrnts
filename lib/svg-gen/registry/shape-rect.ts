@@ -13,7 +13,7 @@ import {
 import { generateScanLines } from "../fill-patterns"
 import { g, leaf } from "../node-helpers"
 import { colorForCutIndex } from "../palette"
-import type { ShapeRenderer } from "./index"
+import type { RenderOptions, ShapeRenderer } from "./index"
 
 export const rectRenderer: ShapeRenderer<ShapeRect> = {
   match: (s): s is ShapeRect => s instanceof ShapeRect,
@@ -34,7 +34,7 @@ export const rectRenderer: ShapeRenderer<ShapeRect> = {
     )
   },
 
-  toSvg: (rect, cutSettings): INode => {
+  toSvg: (rect, cutSettings, options): INode => {
     const xform = rect.xform ? arrayToMatrix(rect.xform) : identity()
     const transform = matToSvg(xform)
     const w = rect.w || 0
@@ -67,7 +67,7 @@ export const rectRenderer: ShapeRenderer<ShapeRect> = {
         crossHatch: cutSetting.crossHatch || false,
       }
 
-      const fillLines = generateScanLines(localBBox, fillSettings, stroke)
+      const fillLines = generateScanLines(localBBox, fillSettings, stroke, options.strokeWidth)
       children.push(...fillLines)
     }
 
