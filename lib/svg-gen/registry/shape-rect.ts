@@ -1,5 +1,4 @@
 import type { INode } from "svgson"
-import type { CutSetting } from "../../classes/elements/CutSetting"
 import { ShapeRect } from "../../classes/elements/shapes/ShapeRect"
 import {
   addPts,
@@ -34,7 +33,7 @@ export const rectRenderer: ShapeRenderer<ShapeRect> = {
     )
   },
 
-  toSvg: (rect, cutSettings): INode => {
+  toSvg: (rect, cutSettings, options): INode => {
     const xform = rect.xform ? arrayToMatrix(rect.xform) : identity()
     const transform = matToSvg(xform)
     const w = rect.w || 0
@@ -67,7 +66,12 @@ export const rectRenderer: ShapeRenderer<ShapeRect> = {
         crossHatch: cutSetting.crossHatch || false,
       }
 
-      const fillLines = generateScanLines(localBBox, fillSettings, stroke)
+      const fillLines = generateScanLines(
+        localBBox,
+        fillSettings,
+        stroke,
+        options.strokeWidth,
+      )
       children.push(...fillLines)
     }
 

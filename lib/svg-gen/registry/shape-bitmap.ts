@@ -31,7 +31,7 @@ export const bitmapRenderer: ShapeRenderer<ShapeBitmap> = {
     )
   },
 
-  toSvg: (bmp, _cutSettings): INode => {
+  toSvg: (bmp, _cutSettings, _options): INode => {
     const xform = bmp.xform ? arrayToMatrix(bmp.xform) : identity()
     const transform = matToSvg(xform)
     const w = bmp.w || 0

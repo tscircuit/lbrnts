@@ -15,6 +15,7 @@ export function generateScanLines(
   bbox: BBox,
   settings: FillSettings,
   color: string,
+  strokeWidth: number,
 ): INode[] {
   const lines: INode[] = []
 
@@ -27,6 +28,7 @@ export function generateScanLines(
     settings.interval,
     angleRad,
     color,
+    strokeWidth,
   )
   lines.push(...primaryLines)
 
@@ -38,6 +40,7 @@ export function generateScanLines(
       settings.interval,
       perpAngle,
       color,
+      strokeWidth,
     )
     lines.push(...crossLines)
   }
@@ -53,6 +56,7 @@ function generateLinesAtAngle(
   interval: number,
   angle: number,
   color: string,
+  strokeWidth: number,
 ): INode[] {
   const lines: INode[] = []
 
@@ -108,7 +112,7 @@ function generateLinesAtAngle(
           x2: String(clipped.x2),
           y2: String(clipped.y2),
           stroke: color,
-          "stroke-width": "0.1",
+          "stroke-width": String(strokeWidth),
           "stroke-opacity": "0.8",
         }),
       )

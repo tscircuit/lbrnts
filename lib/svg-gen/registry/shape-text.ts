@@ -32,7 +32,7 @@ export const textRenderer: ShapeRenderer<ShapeText> = {
     ])
   },
 
-  toSvg: (t, _cutSettings): INode => {
+  toSvg: (t, _cutSettings, _options): INode => {
     const xform = t.xform ? arrayToMatrix(t.xform) : identity()
     const transform = matToSvg(xform)
     const stroke = colorForCutIndex(t.cutIndex)

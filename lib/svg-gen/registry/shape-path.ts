@@ -13,7 +13,7 @@ import {
 import { generateScanLines } from "../fill-patterns"
 import { g, leaf } from "../node-helpers"
 import { colorForCutIndex } from "../palette"
-import type { ShapeRenderer } from "./index"
+import type { RenderOptions, ShapeRenderer } from "./index"
 
 export const pathRenderer: ShapeRenderer<ShapePath> = {
   match: (s): s is ShapePath => s instanceof ShapePath,
@@ -24,7 +24,7 @@ export const pathRenderer: ShapeRenderer<ShapePath> = {
     return addPts(emptyBox(), pts)
   },
 
-  toSvg: (p, cutSettings): INode => {
+  toSvg: (p, cutSettings, options): INode => {
     const xform = p.xform ? arrayToMatrix(p.xform) : identity()
     const transform = matToSvg(xform)
     const stroke = colorForCutIndex(p.cutIndex)
@@ -86,7 +86,12 @@ export const pathRenderer: ShapeRenderer<ShapePath> = {
         crossHatch: cutSetting.crossHatch || false,
       }
 
-      const fillLines = generateScanLines(bbox, fillSettings, stroke)
+      const fillLines = generateScanLines(
+        bbox,
+        fillSettings,
+        stroke,
+        options.strokeWidth,
+      )
 
       // Use the path as a clip-path to ensure scan lines only appear inside the shape
       // Generate a unique ID for this clip path
@@ -120,7 +125,7 @@ export const pathRenderer: ShapeRenderer<ShapePath> = {
         d,
         fill: "none",
         stroke,
-        "stroke-width": "0.1",
+        "stroke-width": String(options.strokeWidth),
       }),
     )
 
