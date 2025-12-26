@@ -10,7 +10,7 @@ import {
   matToSvg,
 } from "../_math"
 import { g } from "../node-helpers"
-import type { RenderOptions, ShapeRenderer } from "./index"
+import type { ShapeRenderer } from "./index"
 import { bboxOfShape, svgForShape } from "./index"
 
 export const groupRenderer: ShapeRenderer<ShapeGroup> = {

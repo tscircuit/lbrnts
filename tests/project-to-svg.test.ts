@@ -143,4 +143,25 @@ describe("LightBurn parsing and SVG generation", () => {
       expect(heightWithMargin).toBe(heightNoMargin + 20)
     }
   })
+
+  test("generate SVG with custom defaultStrokeWidth", () => {
+    const xml = readFileSync(
+      "../circuit-json-to-lbrn/debug-output/example02.lbrn2",
+      "utf-8",
+    )
+    const project = LightBurnBaseElement.parse(xml)
+
+    // Generate with default stroke width (0.1)
+    const svgDefault = generateLightBurnSvg(project)
+    expect(svgDefault).toContain('stroke-width="0.1"')
+
+    // Generate with custom stroke width
+    const svgCustom = generateLightBurnSvg(project, { defaultStrokeWidth: 0.5 })
+    expect(svgCustom).toContain('stroke-width="0.5"')
+    expect(svgCustom).not.toContain('stroke-width="0.1"')
+
+    // Generate with another custom stroke width
+    const svgThick = generateLightBurnSvg(project, { defaultStrokeWidth: 2 })
+    expect(svgThick).toContain('stroke-width="2"')
+  })
 })

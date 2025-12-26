@@ -1,5 +1,4 @@
 import type { INode } from "svgson"
-import type { CutSetting } from "../../classes/elements/CutSetting"
 import { ShapeRect } from "../../classes/elements/shapes/ShapeRect"
 import {
   addPts,
@@ -13,7 +12,7 @@ import {
 import { generateScanLines } from "../fill-patterns"
 import { g, leaf } from "../node-helpers"
 import { colorForCutIndex } from "../palette"
-import type { RenderOptions, ShapeRenderer } from "./index"
+import type { ShapeRenderer } from "./index"
 
 export const rectRenderer: ShapeRenderer<ShapeRect> = {
   match: (s): s is ShapeRect => s instanceof ShapeRect,
