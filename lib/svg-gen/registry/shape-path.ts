@@ -126,6 +126,8 @@ export const pathRenderer: ShapeRenderer<ShapePath> = {
         fill: "none",
         stroke,
         "stroke-width": String(options.strokeWidth),
+        "stroke-linecap": "round",
+        "stroke-linejoin": "round",
       }),
     )
 
