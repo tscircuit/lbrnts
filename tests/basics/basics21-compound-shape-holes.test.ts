@@ -50,12 +50,7 @@ describe("Compound shapes with holes", () => {
         { x: 35, y: 35 }, // top-right
         { x: 35, y: 15 }, // bottom-right
       ],
-      prims: [
-        { type: 0 },
-        { type: 0 },
-        { type: 0 },
-        { type: 0 },
-      ],
+      prims: [{ type: 0 }, { type: 0 }, { type: 0 }, { type: 0 }],
       isClosed: true,
     })
 
