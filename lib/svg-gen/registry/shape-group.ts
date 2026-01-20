@@ -1,6 +1,6 @@
 import type { INode } from "svgson"
-import { ShapeEllipse } from "../../classes/elements/shapes/ShapeEllipse"
 import { ShapeBase } from "../../classes/elements/shapes/ShapeBase"
+import { ShapeEllipse } from "../../classes/elements/shapes/ShapeEllipse"
 import { ShapeGroup } from "../../classes/elements/shapes/ShapeGroup"
 import { ShapePath } from "../../classes/elements/shapes/ShapePath"
 import { ShapeRect } from "../../classes/elements/shapes/ShapeRect"
@@ -211,7 +211,7 @@ export const groupRenderer: ShapeRenderer<ShapeGroup> = {
           )
 
           // Create a clip-path using the combined compound path with nonzero fill-rule
-          const clipId = `clip-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+          const clipId = `clip-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`
 
           const clipPath: INode = {
             name: "clipPath",
