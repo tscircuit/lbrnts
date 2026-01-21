@@ -371,7 +371,10 @@ class CutSettingPropertyElement extends LightBurnBaseElement {
     this.propValue = propValue
   }
 
-  private formatValue(value: any): string {
+  private formatValue(value: boolean | number): string {
+    if (this.propName === "crossHatch" && typeof value === "boolean") {
+      return value ? "1" : "0"
+    }
     if (typeof value === "number") {
       // For very small numbers, use decimal notation to match LightBurn format
       if (value !== 0 && Math.abs(value) < 0.001) {
