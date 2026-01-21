@@ -3,6 +3,7 @@ import {
   CutSetting,
   LightBurnBaseElement,
   LightBurnProject,
+  ShapeGroup,
   ShapePath,
   ShapeRect,
 } from "../index"
@@ -178,6 +179,75 @@ describe("XML roundtrip tests", () => {
         expect(shape.verts[1]?.c0y).toBe(-16.5)
         expect(shape.verts[1]?.c1x).toBe(30)
         expect(shape.verts[1]?.c1y).toBe(-16.5)
+      }
+    }
+  })
+
+  test("LightBurnProject roundtrip with ShapeGroup", () => {
+    const rect = new ShapeRect()
+    rect.w = 100
+    rect.h = 50
+    rect.cr = 0
+    rect.cutIndex = 0
+    rect.xform = [1, 0, 0, 1, 50, 25]
+
+    const path = new ShapePath({
+      cutIndex: 0,
+      verts: [
+        { x: -25, y: -25 },
+        { x: 25, y: -25 },
+        { x: 25, y: 25 },
+        { x: -25, y: 25 },
+      ],
+      prims: [{ type: 0 }, { type: 0 }, { type: 0 }, { type: 0 }],
+      isClosed: true,
+    })
+
+    const group = new ShapeGroup()
+    group.cutIndex = 0
+    group.children = [rect, path]
+
+    const project = new LightBurnProject({
+      appVersion: "1.6.00",
+      formatVersion: "1",
+      materialHeight: 0,
+      children: [group],
+    })
+
+    const xml = project.getString()
+    const parsed = LightBurnBaseElement.parse(xml)
+
+    expect(parsed).toBeInstanceOf(LightBurnProject)
+    if (parsed instanceof LightBurnProject) {
+      expect(parsed.appVersion).toBe("1.6.00")
+      expect(parsed.formatVersion).toBe("1")
+      expect(parsed.materialHeight).toBe(0)
+      expect(parsed.children).toHaveLength(1)
+
+      const grp = parsed.children[0]
+      expect(grp).toBeInstanceOf(ShapeGroup)
+      if (grp instanceof ShapeGroup) {
+        expect(grp.cutIndex).toBe(0)
+        expect(grp.children).toHaveLength(2)
+
+        const r = grp.children[0]
+        expect(r).toBeInstanceOf(ShapeRect)
+        if (r instanceof ShapeRect) {
+          expect(r.w).toBe(100)
+          expect(r.h).toBe(50)
+          expect(r.cr).toBe(0)
+          expect(r.cutIndex).toBe(0)
+          expect(r.xform).toEqual([1, 0, 0, 1, 50, 25])
+        }
+
+        const p = grp.children[1]
+        expect(p).toBeInstanceOf(ShapePath)
+        if (p instanceof ShapePath) {
+          expect(p.cutIndex).toBe(0)
+          expect(p.verts).toHaveLength(4)
+          expect(p.prims).toHaveLength(4)
+          expect(p.isClosed).toBe(true)
+        }
       }
     }
   })
