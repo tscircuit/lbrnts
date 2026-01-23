@@ -25,11 +25,18 @@ export interface HatchPatternParams {
 /**
  * Generate a deterministic pattern ID from parameters.
  * Uses fixed decimal places for stable IDs across floating point values.
+ * Handles all color formats (hex, named, rgb, rgba, hsl) by encoding
+ * and sanitizing to produce valid XML IDs.
  */
 function generatePatternId(params: HatchPatternParams): string {
   const opacity = params.opacity ?? 0.8
-  const colorHex = params.color.replace("#", "")
-  return `hatch-${params.interval.toFixed(4)}-${params.angleDeg}-${params.crossHatch}-${colorHex}-${params.strokeWidth.toFixed(4)}-${opacity.toFixed(2)}`
+  // Encode color to handle all formats (hex, named, rgb, rgba, hsl),
+  // then replace non-alphanumeric chars to ensure valid XML ID
+  const safeColor = encodeURIComponent(params.color).replace(
+    /[^a-zA-Z0-9]/g,
+    "_",
+  )
+  return `hatch-${params.interval.toFixed(4)}-${params.angleDeg}-${params.crossHatch}-${safeColor}-${params.strokeWidth.toFixed(4)}-${opacity.toFixed(2)}`
 }
 
 /**
