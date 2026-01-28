@@ -118,7 +118,7 @@ describe("XML roundtrip tests", () => {
       speed: 20,
       numPasses: 100,
       frequency: 20000,
-      pulseWidth: 1e-9,
+      qPulseWidth: 1,
     })
 
     const project = new LightBurnProject({
@@ -142,7 +142,7 @@ describe("XML roundtrip tests", () => {
         expect(cs.speed).toBe(20)
         expect(cs.numPasses).toBe(100)
         expect(cs.frequency).toBe(20000)
-        expect(cs.pulseWidth).toBe(1e-9)
+        expect(cs.qPulseWidth).toBe(1)
       }
     }
   })

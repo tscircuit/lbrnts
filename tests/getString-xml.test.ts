@@ -281,7 +281,7 @@ describe("getString() returns full LightBurn XML", () => {
       speed: 300,
       numPasses: 100,
       frequency: 20000,
-      pulseWidth: 1e-9,
+      qPulseWidth: 1,
     })
 
     expect(cutSetting.getString()).toMatchInlineSnapshot(`
@@ -291,7 +291,7 @@ describe("getString() returns full LightBurn XML", () => {
           <speed Value="300"/>
           <numPasses Value="100"/>
           <frequency Value="20000"/>
-          <pulseWidth Value="0.000000001"/>
+          <QPulseWidth Value="1"/>
       </CutSetting>"
     `)
   })

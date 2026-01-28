@@ -27,7 +27,7 @@ export interface CutSettingInit {
   lineAngle?: number
   crossHatch?: boolean
   frequency?: number
-  pulseWidth?: number
+  qPulseWidth?: number
 }
 
 export class CutSetting extends LightBurnBaseElement {
@@ -55,7 +55,7 @@ export class CutSetting extends LightBurnBaseElement {
   private _lineAngle?: number
   private _crossHatch?: boolean
   private _frequency?: number
-  private _pulseWidth?: number
+  private _qPulseWidth?: number
 
   constructor(init?: CutSettingInit) {
     super()
@@ -87,7 +87,7 @@ export class CutSetting extends LightBurnBaseElement {
       if (init.lineAngle !== undefined) this._lineAngle = init.lineAngle
       if (init.crossHatch !== undefined) this._crossHatch = init.crossHatch
       if (init.frequency !== undefined) this._frequency = init.frequency
-      if (init.pulseWidth !== undefined) this._pulseWidth = init.pulseWidth
+      if (init.qPulseWidth !== undefined) this._qPulseWidth = init.qPulseWidth
     }
   }
 
@@ -259,11 +259,11 @@ export class CutSetting extends LightBurnBaseElement {
     this._frequency = value
   }
 
-  get pulseWidth(): number | undefined {
-    return this._pulseWidth
+  get qPulseWidth(): number | undefined {
+    return this._qPulseWidth
   }
-  set pulseWidth(value: number | undefined) {
-    this._pulseWidth = value
+  set qPulseWidth(value: number | undefined) {
+    this._qPulseWidth = value
   }
 
   override getXmlAttributes(): Record<
@@ -301,7 +301,7 @@ export class CutSetting extends LightBurnBaseElement {
       "lineAngle",
       "crossHatch",
       "frequency",
-      "pulseWidth",
+      "qPulseWidth",
     ]
 
     for (const prop of props) {
@@ -351,7 +351,7 @@ export class CutSetting extends LightBurnBaseElement {
     cs.lineAngle = num(getChildValue("lineAngle"), undefined)
     cs.crossHatch = boolish(getChildValue("crossHatch"), undefined)
     cs.frequency = num(getChildValue("frequency"), undefined)
-    cs.pulseWidth = num(getChildValue("pulseWidth"), undefined)
+    cs.qPulseWidth = num(getChildValue("QPulseWidth"), undefined)
 
     return cs
   }
@@ -388,7 +388,9 @@ class CutSettingPropertyElement extends LightBurnBaseElement {
 
   override toXml(indent = 0): string {
     const indentStr = "    ".repeat(indent)
-    return `${indentStr}<${this.propName} Value="${this.formatValue(this.propValue)}"/>`
+    const tagName =
+      this.propName === "qPulseWidth" ? "QPulseWidth" : this.propName
+    return `${indentStr}<${tagName} Value="${this.formatValue(this.propValue)}"/>`
   }
 }
 
