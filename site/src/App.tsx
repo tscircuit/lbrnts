@@ -23,6 +23,8 @@ type LayerInfo = {
 const MIN_ZOOM = 0.02
 const MAX_ZOOM = 100
 const VIEWPORT_PADDING = 16
+const EXAMPLE_FILE_NAME = "example.lbrn2"
+const EXAMPLE_FILE_PATH = "/example.lbrn2"
 
 const LIGHTBURN_LAYER_COLORS: Record<number, string> = {
   0: "#000000",
@@ -280,12 +282,10 @@ export function App() {
     return `Loaded ${fileName}`
   }, [errorMessage, fileName])
 
-  const loadFile = async (file: File) => {
-    if (!file) return
-
-    if (!/\.lbrn2?$/i.test(file.name)) {
+  const loadProjectFromContents = async (name: string, contents: string) => {
+    if (!/\.lbrn2?$/i.test(name)) {
       setErrorMessage("Please choose a .lbrn or .lbrn2 file")
-      setFileName(file.name)
+      setFileName(name)
       setSourceSvg("")
       setLayers([])
       setLayerVisibilityByIndex({})
@@ -293,7 +293,6 @@ export function App() {
     }
 
     try {
-      const contents = await file.text()
       const project = LightBurnBaseElement.parse(contents)
       const nextSvg = generateLightBurnSvg(project)
       const nextLayers = collectLayerInfo(project)
@@ -301,7 +300,7 @@ export function App() {
         nextLayers.map((layer) => [layer.index, true]),
       ) as Record<number, boolean>
 
-      setFileName(file.name)
+      setFileName(name)
       setSourceSvg(nextSvg)
       setLayers(nextLayers)
       setLayerVisibilityByIndex(nextLayerVisibilityByIndex)
@@ -309,11 +308,34 @@ export function App() {
       fitSvgToViewport(nextSvg)
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unknown error"
-      setFileName(file.name)
+      setFileName(name)
       setSourceSvg("")
       setLayers([])
       setLayerVisibilityByIndex({})
       setErrorMessage(`Could not parse file: ${message}`)
+    }
+  }
+
+  const loadFile = async (file: File) => {
+    if (!file) return
+    await loadProjectFromContents(file.name, await file.text())
+  }
+
+  const openExample = async () => {
+    try {
+      const response = await fetch(EXAMPLE_FILE_PATH)
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`)
+      }
+      const contents = await response.text()
+      await loadProjectFromContents(EXAMPLE_FILE_NAME, contents)
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unknown error"
+      setFileName(EXAMPLE_FILE_NAME)
+      setSourceSvg("")
+      setLayers([])
+      setLayerVisibilityByIndex({})
+      setErrorMessage(`Could not open example file: ${message}`)
     }
   }
 
@@ -419,15 +441,24 @@ export function App() {
           </h1>
           <p className="mt-1 text-sm text-slate-300">{helperText}</p>
 
-          <label className="mt-4 inline-flex cursor-pointer items-center gap-2 rounded-md bg-sky-500 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-sky-400">
-            <span>Upload file</span>
-            <input
-              accept=".lbrn,.lbrn2"
-              className="sr-only"
-              onChange={onFileChange}
-              type="file"
-            />
-          </label>
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <label className="inline-flex cursor-pointer items-center gap-2 rounded-md bg-sky-500 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-sky-400">
+              <span>Upload file</span>
+              <input
+                accept=".lbrn,.lbrn2"
+                className="sr-only"
+                onChange={onFileChange}
+                type="file"
+              />
+            </label>
+            <button
+              className="rounded-md border border-slate-500/70 bg-slate-800 px-4 py-2 text-sm font-semibold text-slate-100 transition hover:border-slate-400 hover:bg-slate-700"
+              onClick={openExample}
+              type="button"
+            >
+              Open Example
+            </button>
+          </div>
         </header>
 
         <section className="rounded-xl border border-slate-700/80 bg-slate-900/70 p-3 backdrop-blur">
