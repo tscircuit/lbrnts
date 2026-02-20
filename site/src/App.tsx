@@ -327,6 +327,7 @@ export function App() {
     if (!canRender) return
 
     event.preventDefault()
+    event.stopPropagation()
 
     const zoomIntensity = 0.0015
     const nextScale = clamp(
@@ -346,6 +347,11 @@ export function App() {
       x: mouseX - worldX * nextScale,
       y: mouseY - worldY * nextScale,
     })
+  }
+
+  const onWheelCapture = (event: WheelEvent<HTMLDivElement>) => {
+    if (!canRender) return
+    event.preventDefault()
   }
 
   const onPointerDown = (event: PointerEvent<HTMLDivElement>) => {
@@ -463,19 +469,34 @@ export function App() {
                   Layers
                 </h2>
                 {layers.length > 0 ? (
-                  <button
-                    className="text-xs text-sky-300 hover:text-sky-200"
-                    onClick={() => {
-                      setLayerVisibilityByIndex(
-                        Object.fromEntries(
-                          layers.map((layer) => [layer.index, true]),
-                        ) as Record<number, boolean>,
-                      )
-                    }}
-                    type="button"
-                  >
-                    Show all
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      className="text-xs text-slate-300 hover:text-slate-100"
+                      onClick={() => {
+                        setLayerVisibilityByIndex(
+                          Object.fromEntries(
+                            layers.map((layer) => [layer.index, false]),
+                          ) as Record<number, boolean>,
+                        )
+                      }}
+                      type="button"
+                    >
+                      Hide all
+                    </button>
+                    <button
+                      className="text-xs text-sky-300 hover:text-sky-200"
+                      onClick={() => {
+                        setLayerVisibilityByIndex(
+                          Object.fromEntries(
+                            layers.map((layer) => [layer.index, true]),
+                          ) as Record<number, boolean>,
+                        )
+                      }}
+                      type="button"
+                    >
+                      Show all
+                    </button>
+                  </div>
                 ) : null}
               </div>
 
@@ -527,6 +548,7 @@ export function App() {
                   ? "border-sky-400 ring-2 ring-sky-400/60"
                   : "border-slate-700"
               }`}
+              style={{ overscrollBehavior: "contain" }}
               onDragEnter={onDragEnter}
               onDragLeave={onDragLeave}
               onDragOver={onDragOver}
@@ -535,6 +557,7 @@ export function App() {
               onPointerDown={onPointerDown}
               onPointerMove={onPointerMove}
               onPointerUp={stopDragging}
+              onWheelCapture={onWheelCapture}
               onWheel={onWheel}
             >
               {dropZoneActive ? (
