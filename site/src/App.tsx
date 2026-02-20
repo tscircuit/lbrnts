@@ -1,4 +1,4 @@
-import { generateLightBurnSvg, LightBurnBaseElement } from "lbrnts"
+import { CutSetting, generateLightBurnSvg, LightBurnBaseElement } from "lbrnts"
 import {
   type ChangeEvent,
   type DragEvent,
@@ -14,16 +14,174 @@ type Point = {
   y: number
 }
 
+type LayerInfo = {
+  index: number
+  name: string
+  color: string
+}
+
 const MIN_ZOOM = 0.02
 const MAX_ZOOM = 100
 const VIEWPORT_PADDING = 16
 
+const LIGHTBURN_LAYER_COLORS: Record<number, string> = {
+  0: "#000000",
+  1: "#0000FF",
+  2: "#FF0000",
+  3: "#00FF00",
+  4: "#FFFF00",
+  5: "#FF8000",
+  6: "#00FFFF",
+  7: "#FF00FF",
+  8: "#C0C0C0",
+  9: "#808080",
+  10: "#800000",
+  11: "#008000",
+  12: "#000080",
+  13: "#808000",
+  14: "#800080",
+  15: "#008080",
+  16: "#A0A0A0",
+  17: "#8080C0",
+  18: "#FFC0C0",
+  19: "#0080FF",
+  20: "#FF0080",
+  21: "#00FF80",
+  22: "#FF8040",
+  23: "#FFC0FF",
+  24: "#FF80C0",
+}
+
 const clamp = (value: number, min: number, max: number) =>
   Math.min(max, Math.max(min, value))
 
+const normalizeColor = (value: string | null): string | null => {
+  if (!value) return null
+  const normalized = value.trim().toLowerCase()
+  if (!normalized) return null
+  if (normalized === "black") return "#000000"
+  return normalized
+}
+
+const colorForLayerIndex = (layerIndex: number): string =>
+  (LIGHTBURN_LAYER_COLORS[layerIndex] || "#000000").toLowerCase()
+
+const visitElements = (
+  root: LightBurnBaseElement | LightBurnBaseElement[],
+  visitor: (element: LightBurnBaseElement) => void,
+) => {
+  const walk = (element: LightBurnBaseElement) => {
+    visitor(element)
+    for (const child of element.getChildren()) {
+      walk(child)
+    }
+  }
+
+  if (Array.isArray(root)) {
+    for (const element of root) walk(element)
+    return
+  }
+
+  walk(root)
+}
+
+const collectLayerInfo = (
+  root: LightBurnBaseElement | LightBurnBaseElement[],
+): LayerInfo[] => {
+  const usedIndices = new Set<number>()
+  const cutSettingsByIndex = new Map<number, string>()
+
+  visitElements(root, (element) => {
+    const candidate = element as { cutIndex?: unknown }
+    if (typeof candidate.cutIndex === "number") {
+      usedIndices.add(candidate.cutIndex)
+    }
+
+    if (element instanceof CutSetting && typeof element.index === "number") {
+      cutSettingsByIndex.set(element.index, element.name || "")
+    }
+  })
+
+  const indices = new Set<number>([
+    ...Array.from(usedIndices),
+    ...Array.from(cutSettingsByIndex.keys()),
+  ])
+
+  return Array.from(indices)
+    .sort((a, b) => a - b)
+    .map((index) => ({
+      index,
+      name:
+        cutSettingsByIndex.get(index) ||
+        `C${index.toString().padStart(2, "0")}`,
+      color: colorForLayerIndex(index),
+    }))
+}
+
+const getLeafLayerColor = (group: SVGGElement): string | null => {
+  const strokedNode = group.querySelector("[stroke]:not([stroke='none'])")
+  const strokeColor = normalizeColor(
+    strokedNode?.getAttribute("stroke") || null,
+  )
+  if (strokeColor) return strokeColor
+
+  const filledNode = group.querySelector("[fill]:not([fill='none'])")
+  const fillColor = filledNode?.getAttribute("fill") || null
+  if (fillColor && !fillColor.trim().toLowerCase().startsWith("url(")) {
+    return normalizeColor(fillColor)
+  }
+
+  return null
+}
+
+const applyLayerVisibility = (
+  sourceSvg: string,
+  layers: LayerInfo[],
+  visibilityByIndex: Record<number, boolean>,
+): string => {
+  if (!sourceSvg) return ""
+
+  const hiddenColors = new Set(
+    layers
+      .filter((layer) => visibilityByIndex[layer.index] === false)
+      .map((layer) => normalizeColor(layer.color))
+      .filter((color): color is string => Boolean(color)),
+  )
+
+  if (hiddenColors.size === 0) {
+    return sourceSvg
+  }
+
+  const parser = new DOMParser()
+  const doc = parser.parseFromString(sourceSvg, "image/svg+xml")
+  const svgElement = doc.querySelector("svg")
+  if (!svgElement) {
+    return sourceSvg
+  }
+
+  const groups = Array.from(svgElement.querySelectorAll("g"))
+  for (const group of groups) {
+    const hasNestedGroup = Array.from(group.children).some(
+      (child) => child.tagName.toLowerCase() === "g",
+    )
+    if (hasNestedGroup) continue
+
+    const layerColor = getLeafLayerColor(group)
+    if (layerColor && hiddenColors.has(layerColor)) {
+      group.setAttribute("display", "none")
+    }
+  }
+
+  return new XMLSerializer().serializeToString(svgElement)
+}
+
 export function App() {
   const viewportRef = useRef<HTMLDivElement | null>(null)
-  const [svg, setSvg] = useState<string>("")
+  const [sourceSvg, setSourceSvg] = useState<string>("")
+  const [layers, setLayers] = useState<LayerInfo[]>([])
+  const [layerVisibilityByIndex, setLayerVisibilityByIndex] = useState<
+    Record<number, boolean>
+  >({})
   const [fileName, setFileName] = useState<string>("")
   const [errorMessage, setErrorMessage] = useState<string>("")
   const [scale, setScale] = useState(1)
@@ -32,7 +190,19 @@ export function App() {
   const [lastPointer, setLastPointer] = useState<Point | null>(null)
   const [dropZoneDepth, setDropZoneDepth] = useState(0)
 
-  const canRender = svg.length > 0
+  const canRender = sourceSvg.length > 0
+
+  const renderedSvg = useMemo(
+    () => applyLayerVisibility(sourceSvg, layers, layerVisibilityByIndex),
+    [layerVisibilityByIndex, layers, sourceSvg],
+  )
+  const renderedSvgDataUri = useMemo(
+    () =>
+      renderedSvg
+        ? `data:image/svg+xml;charset=utf-8,${encodeURIComponent(renderedSvg)}`
+        : "",
+    [renderedSvg],
+  )
 
   const getSvgDimensions = (svgString: string): Point | null => {
     const parser = new DOMParser()
@@ -116,7 +286,9 @@ export function App() {
     if (!/\.lbrn2?$/i.test(file.name)) {
       setErrorMessage("Please choose a .lbrn or .lbrn2 file")
       setFileName(file.name)
-      setSvg("")
+      setSourceSvg("")
+      setLayers([])
+      setLayerVisibilityByIndex({})
       return
     }
 
@@ -124,15 +296,23 @@ export function App() {
       const contents = await file.text()
       const project = LightBurnBaseElement.parse(contents)
       const nextSvg = generateLightBurnSvg(project)
+      const nextLayers = collectLayerInfo(project)
+      const nextLayerVisibilityByIndex = Object.fromEntries(
+        nextLayers.map((layer) => [layer.index, true]),
+      ) as Record<number, boolean>
 
       setFileName(file.name)
-      setSvg(nextSvg)
+      setSourceSvg(nextSvg)
+      setLayers(nextLayers)
+      setLayerVisibilityByIndex(nextLayerVisibilityByIndex)
       setErrorMessage("")
       fitSvgToViewport(nextSvg)
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unknown error"
       setFileName(file.name)
-      setSvg("")
+      setSourceSvg("")
+      setLayers([])
+      setLayerVisibilityByIndex({})
       setErrorMessage(`Could not parse file: ${message}`)
     }
   }
@@ -197,7 +377,7 @@ export function App() {
 
   const resetView = () => {
     if (!canRender) return
-    fitSvgToViewport(svg)
+    fitSvgToViewport(sourceSvg)
   }
 
   const onDragEnter = (event: DragEvent<HTMLDivElement>) => {
@@ -276,49 +456,116 @@ export function App() {
             </span>
           </div>
 
-          <div
-            ref={viewportRef}
-            className={`relative h-[70vh] overflow-hidden rounded-lg border bg-slate-950/70 transition ${
-              dropZoneActive
-                ? "border-sky-400 ring-2 ring-sky-400/60"
-                : "border-slate-700"
-            }`}
-            onDragEnter={onDragEnter}
-            onDragLeave={onDragLeave}
-            onDragOver={onDragOver}
-            onDrop={onDrop}
-            onPointerCancel={stopDragging}
-            onPointerDown={onPointerDown}
-            onPointerMove={onPointerMove}
-            onPointerUp={stopDragging}
-            onWheel={onWheel}
-          >
-            {dropZoneActive ? (
-              <div className="absolute inset-0 z-20 grid place-items-center bg-sky-950/70 text-center text-sm font-medium text-sky-100">
-                Drop your .lbrn or .lbrn2 file
+          <div className="flex flex-col gap-3 lg:flex-row">
+            <aside className="rounded-lg border border-slate-700 bg-slate-900/80 p-3 lg:w-64 lg:shrink-0">
+              <div className="mb-2 flex items-center justify-between">
+                <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-300">
+                  Layers
+                </h2>
+                {layers.length > 0 ? (
+                  <button
+                    className="text-xs text-sky-300 hover:text-sky-200"
+                    onClick={() => {
+                      setLayerVisibilityByIndex(
+                        Object.fromEntries(
+                          layers.map((layer) => [layer.index, true]),
+                        ) as Record<number, boolean>,
+                      )
+                    }}
+                    type="button"
+                  >
+                    Show all
+                  </button>
+                ) : null}
               </div>
-            ) : null}
-            {!canRender ? (
-              <div className="grid h-full place-items-center px-6 text-center text-sm text-slate-400">
-                <p>
-                  Upload a LightBurn file to render SVG. Use mouse wheel to zoom
-                  and drag to pan.
+
+              {!canRender ? (
+                <p className="text-sm text-slate-400">
+                  Load a file to list layers.
                 </p>
-              </div>
-            ) : (
-              <div
-                className={dragging ? "cursor-grabbing" : "cursor-grab"}
-                style={{
-                  transform: `translate(${offset.x}px, ${offset.y}px) scale(${scale})`,
-                  transformOrigin: "0 0",
-                }}
-              >
+              ) : layers.length === 0 ? (
+                <p className="text-sm text-slate-400">No layers detected.</p>
+              ) : (
+                <ul className="space-y-1.5">
+                  {layers.map((layer) => {
+                    const checked = layerVisibilityByIndex[layer.index] ?? true
+                    return (
+                      <li key={layer.index}>
+                        <label className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1 text-sm text-slate-200 hover:bg-slate-800/80">
+                          <input
+                            checked={checked}
+                            className="size-4 rounded border-slate-500 bg-slate-900 accent-sky-400"
+                            onChange={() => {
+                              setLayerVisibilityByIndex((current) => ({
+                                ...current,
+                                [layer.index]: !checked,
+                              }))
+                            }}
+                            type="checkbox"
+                          />
+                          <span
+                            aria-hidden="true"
+                            className="size-3 rounded-sm border border-slate-500"
+                            style={{ backgroundColor: layer.color }}
+                          />
+                          <span className="truncate">{layer.name}</span>
+                          <span className="ml-auto text-xs text-slate-400">
+                            C{layer.index.toString().padStart(2, "0")}
+                          </span>
+                        </label>
+                      </li>
+                    )
+                  })}
+                </ul>
+              )}
+            </aside>
+
+            <div
+              ref={viewportRef}
+              className={`relative h-[70vh] overflow-hidden rounded-lg border bg-slate-950/70 transition lg:flex-1 ${
+                dropZoneActive
+                  ? "border-sky-400 ring-2 ring-sky-400/60"
+                  : "border-slate-700"
+              }`}
+              onDragEnter={onDragEnter}
+              onDragLeave={onDragLeave}
+              onDragOver={onDragOver}
+              onDrop={onDrop}
+              onPointerCancel={stopDragging}
+              onPointerDown={onPointerDown}
+              onPointerMove={onPointerMove}
+              onPointerUp={stopDragging}
+              onWheel={onWheel}
+            >
+              {dropZoneActive ? (
+                <div className="absolute inset-0 z-20 grid place-items-center bg-sky-950/70 text-center text-sm font-medium text-sky-100">
+                  Drop your .lbrn or .lbrn2 file
+                </div>
+              ) : null}
+              {!canRender ? (
+                <div className="grid h-full place-items-center px-6 text-center text-sm text-slate-400">
+                  <p>
+                    Upload a LightBurn file to render SVG. Use mouse wheel to
+                    zoom and drag to pan.
+                  </p>
+                </div>
+              ) : (
                 <div
-                  className="pointer-events-none"
-                  dangerouslySetInnerHTML={{ __html: svg }}
-                />
-              </div>
-            )}
+                  className={dragging ? "cursor-grabbing" : "cursor-grab"}
+                  style={{
+                    transform: `translate(${offset.x}px, ${offset.y}px) scale(${scale})`,
+                    transformOrigin: "0 0",
+                  }}
+                >
+                  <img
+                    alt=""
+                    className="pointer-events-none select-none"
+                    draggable={false}
+                    src={renderedSvgDataUri}
+                  />
+                </div>
+              )}
+            </div>
           </div>
         </section>
       </div>
