@@ -8,7 +8,8 @@
   ],
   "scripts": {
     "build": "tsup-node ./lib/index.ts --format esm --dts",
-    "build:site": "bun build site/index.html",
+    "dev:site": "bun run --cwd site dev",
+    "build:site": "bun run --cwd site build",
     "format": "biome format --write .",
     "format:check": "biome format ."
   },
