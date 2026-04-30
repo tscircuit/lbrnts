@@ -106,6 +106,16 @@ describe("LightBurn parsing and SVG generation", () => {
     await expect(svg).toMatchSvgSnapshot(import.meta.path)
   })
 
+  test("scan layers render as outlines without hatch patterns", () => {
+    const xml = readFileSync("tests/fixtures/scan-vs-cut.lbrn2", "utf-8")
+    const project = LightBurnBaseElement.parse(xml)
+    const svg = generateLightBurnSvg(project)
+
+    expect(svg).not.toContain("<pattern")
+    expect(svg).not.toContain('fill="url(#hatch-')
+    expect(svg).toContain('fill="none"')
+  })
+
   test("generate SVG with margin", () => {
     const xml = readFileSync("tests/fixtures/simple-rect.lbrn2", "utf-8")
     const project = LightBurnBaseElement.parse(xml)

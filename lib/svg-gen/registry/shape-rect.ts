@@ -9,7 +9,6 @@ import {
   identity,
   matToSvg,
 } from "../_math"
-import { fillSettingsToPatternParams } from "../fill-patterns"
 import { g, leaf } from "../node-helpers"
 import { colorForCutIndex } from "../palette"
 import type { ShapeRenderer } from "./index"
@@ -33,7 +32,7 @@ export const rectRenderer: ShapeRenderer<ShapeRect> = {
     )
   },
 
-  toSvg: (rect, cutSettings, options): INode => {
+  toSvg: (rect, options): INode => {
     const xform = rect.xform ? arrayToMatrix(rect.xform) : identity()
     const transform = matToSvg(xform)
     const w = rect.w || 0
@@ -41,45 +40,7 @@ export const rectRenderer: ShapeRenderer<ShapeRect> = {
     const cr = rect.cr || 0
     const stroke = colorForCutIndex(rect.cutIndex)
 
-    const children: INode[] = []
-
-    // Get cut settings for this shape to determine if we should show fill
-    const cutSetting =
-      rect.cutIndex !== undefined ? cutSettings.get(rect.cutIndex) : undefined
-    // Only show fill for "Scan" or "Scan+Cut" modes
-    const shouldShowFill =
-      cutSetting &&
-      (cutSetting.type === "Scan" || cutSetting.type === "Scan+Cut")
-
-    if (shouldShowFill && cutSetting) {
-      const fillSettings = {
-        interval: cutSetting.interval || 0.1,
-        angle: cutSetting.angle || 0,
-        crossHatch: cutSetting.crossHatch || false,
-      }
-
-      // Register pattern and get ID
-      const patternId = options.patternRegistry.getOrCreate(
-        fillSettingsToPatternParams(fillSettings, stroke, options.strokeWidth),
-      )
-
-      // Add filled rect with pattern (separate from outline)
-      children.push(
-        leaf("rect", {
-          x: "0",
-          y: "0",
-          width: String(w),
-          height: String(h),
-          rx: String(cr),
-          ry: String(cr),
-          fill: `url(#${patternId})`,
-          stroke: "none",
-        }),
-      )
-    }
-
-    // Always add the outline
-    children.push(
+    return g({ transform }, [
       leaf("rect", {
         x: "0",
         y: "0",
@@ -90,8 +51,6 @@ export const rectRenderer: ShapeRenderer<ShapeRect> = {
         fill: "none",
         stroke,
       }),
-    )
-
-    return g({ transform }, children)
+    ])
   },
 }

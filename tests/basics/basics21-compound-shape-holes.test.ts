@@ -7,7 +7,7 @@ import {
   ShapePath,
 } from "../../index"
 
-test("ShapeGroup with outer rect and inner hole renders with nonzero fill-rule", async () => {
+test("ShapeGroup with outer rect and inner hole renders as outline", async () => {
   // Create a cut setting for engraving (Scan mode to show fill)
   const cutSetting = new CutSetting({
     index: 0,
@@ -70,16 +70,12 @@ test("ShapeGroup with outer rect and inner hole renders with nonzero fill-rule",
   expect(svg).toContain("fill-rule")
   expect(svg).toContain("nonzero")
 
-  // Verify pattern-based fill is used instead of clipPath + scan lines
-  expect(svg).toContain("<pattern")
-  expect(svg).toContain("<defs>")
-  expect(svg).toContain('fill="url(#hatch-')
+  expect(svg).not.toContain("<pattern")
+  expect(svg).not.toContain('fill="url(#hatch-')
 
-  // Verify it's a compound path (both shapes combined into path elements)
-  // We expect 2 path elements with d attribute: one for fill, one for outline stroke
-  // Plus one path inside the pattern definition
+  // Verify it's a compound path (both shapes combined into one outline path)
   const pathMatches = svg.match(/<path[^>]+d="([^"]+)"/g) || []
-  expect(pathMatches.length).toBe(3) // 1 in pattern + 2 for compound shape (fill + stroke)
+  expect(pathMatches.length).toBe(1)
 
   // The compound paths should have 2 "M" commands (one for outer, one for inner hole)
   // Filter to just the paths with 2 M commands (the compound shapes)
@@ -87,7 +83,7 @@ test("ShapeGroup with outer rect and inner hole renders with nonzero fill-rule",
     const mCount = (p.match(/M\s/g) || []).length
     return mCount === 2
   })
-  expect(compoundPaths.length).toBe(2) // fill path and stroke path
+  expect(compoundPaths.length).toBe(1)
 
   await expect(svg).toMatchSvgSnapshot(import.meta.path)
 })
