@@ -9,7 +9,6 @@ import {
   identity,
   matToSvg,
 } from "../_math"
-import { fillSettingsToPatternParams } from "../fill-patterns"
 import { g, leaf } from "../node-helpers"
 import { colorForCutIndex } from "../palette"
 import type { ShapeRenderer } from "./index"
@@ -23,12 +22,10 @@ export const pathRenderer: ShapeRenderer<ShapePath> = {
     return addPts(emptyBox(), pts)
   },
 
-  toSvg: (p, cutSettings, options): INode => {
+  toSvg: (p, options): INode => {
     const xform = p.xform ? arrayToMatrix(p.xform) : identity()
     const transform = matToSvg(xform)
     const stroke = colorForCutIndex(p.cutIndex)
-
-    const children: INode[] = []
 
     // Build the path data string
     let d = ""
@@ -63,40 +60,7 @@ export const pathRenderer: ShapeRenderer<ShapePath> = {
       d += " Z"
     }
 
-    // Get cut settings for this shape to determine if we should show fill
-    const cutSetting =
-      p.cutIndex !== undefined ? cutSettings.get(p.cutIndex) : undefined
-    // Only show fill for closed paths in "Scan" or "Scan+Cut" modes
-    const shouldShowFill =
-      p.isClosed &&
-      cutSetting &&
-      (cutSetting.type === "Scan" || cutSetting.type === "Scan+Cut")
-
-    if (shouldShowFill && cutSetting) {
-      const fillSettings = {
-        interval: cutSetting.interval || 0.1,
-        angle: cutSetting.angle || 0,
-        crossHatch: cutSetting.crossHatch || false,
-      }
-
-      // Register pattern and get ID
-      const patternId = options.patternRegistry.getOrCreate(
-        fillSettingsToPatternParams(fillSettings, stroke, options.strokeWidth),
-      )
-
-      // Add filled path with pattern - the path shape naturally clips the fill
-      children.push(
-        leaf("path", {
-          d,
-          fill: `url(#${patternId})`,
-          "fill-rule": "nonzero",
-          stroke: "none",
-        }),
-      )
-    }
-
-    // Always add the outline
-    children.push(
+    return g({ transform }, [
       leaf("path", {
         d,
         fill: "none",
@@ -105,8 +69,6 @@ export const pathRenderer: ShapeRenderer<ShapePath> = {
         "stroke-linecap": "round",
         "stroke-linejoin": "round",
       }),
-    )
-
-    return g({ transform }, children)
+    ])
   },
 }

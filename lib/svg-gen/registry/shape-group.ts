@@ -13,7 +13,6 @@ import {
   matToSvg,
   mul,
 } from "../_math"
-import { fillSettingsToPatternParams } from "../fill-patterns"
 import { g, leaf } from "../node-helpers"
 import { colorForCutIndex } from "../palette"
 import {
@@ -151,7 +150,7 @@ export const groupRenderer: ShapeRenderer<ShapeGroup> = {
       .reduce((bb, c) => boxUnion(bb, bboxOfShape(c)), emptyBox())
   },
 
-  toSvg: (grp, cutSettings, options): INode => {
+  toSvg: (grp, options): INode => {
     const groupMatrix = grp.xform ? arrayToMatrix(grp.xform) : identity()
     const transform = matToSvg(groupMatrix)
 
@@ -176,50 +175,13 @@ export const groupRenderer: ShapeRenderer<ShapeGroup> = {
 
       if (pathDataParts.length > 0) {
         const combinedPathData = pathDataParts.join(" ")
-        const children: INode[] = []
-
-        // Get cut settings from first child to determine fill mode
+        // Get cut settings from first child to determine outline color
         const firstChild = shapeChildren[0]!
         const cutIndex = firstChild.cutIndex
         const stroke = colorForCutIndex(cutIndex)
-        const cutSetting =
-          cutIndex !== undefined ? cutSettings.get(cutIndex) : undefined
-
-        // Check if we should show fill (Scan or Scan+Cut modes)
-        const shouldShowFill =
-          cutSetting &&
-          (cutSetting.type === "Scan" || cutSetting.type === "Scan+Cut")
-
-        if (shouldShowFill && cutSetting) {
-          const fillSettings = {
-            interval: cutSetting.interval || 0.1,
-            angle: cutSetting.angle || 0,
-            crossHatch: cutSetting.crossHatch || false,
-          }
-
-          // Register pattern and get ID
-          const patternId = options.patternRegistry.getOrCreate(
-            fillSettingsToPatternParams(
-              fillSettings,
-              stroke,
-              options.strokeWidth,
-            ),
-          )
-
-          // Add filled compound path with pattern - the path naturally clips the fill
-          // Using nonzero fill-rule ensures holes are properly excluded
-          children.push(
-            leaf("path", {
-              d: combinedPathData,
-              fill: `url(#${patternId})`,
-              "fill-rule": "nonzero",
-              stroke: "none",
-            }),
-          )
-        }
 
         // Add the combined outline path with nonzero fill-rule
-        children.push(
+        const children = [
           leaf("path", {
             d: combinedPathData,
             fill: "none",
@@ -227,7 +189,7 @@ export const groupRenderer: ShapeRenderer<ShapeGroup> = {
             stroke,
             "stroke-width": String(options.strokeWidth),
           }),
-        )
+        ]
 
         // No transform needed - transforms are already baked into path data
         return g({}, children)
@@ -235,9 +197,7 @@ export const groupRenderer: ShapeRenderer<ShapeGroup> = {
     }
 
     // Fallback: render children individually (for mixed content groups)
-    const children = shapeChildren.map((c) =>
-      svgForShape(c, cutSettings, options),
-    )
+    const children = shapeChildren.map((c) => svgForShape(c, options))
     return g({ transform }, children)
   },
 }
