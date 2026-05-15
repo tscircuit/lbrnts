@@ -174,5 +174,3 @@ export function splitLightBurnProjectByCutSetting(
 
   return files
 }
-
-export const splitLbrn2ByCutSetting = splitLightBurnProjectByCutSetting

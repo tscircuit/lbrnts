@@ -40,10 +40,7 @@ export type { GenerateSvgOptions } from "./lib/svg-gen/index"
 // Export SVG generation
 export { generateLightBurnSvg } from "./lib/svg-gen/index"
 export type { SplitLightBurnProjectFile } from "./lib/split-by-cut-setting"
-export {
-  splitLbrn2ByCutSetting,
-  splitLightBurnProjectByCutSetting,
-} from "./lib/split-by-cut-setting"
+export { splitLightBurnProjectByCutSetting } from "./lib/split-by-cut-setting"
 // Export types
 export type {
   XmlJson,
