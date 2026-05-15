@@ -20,6 +20,7 @@ export * from "./classes/elements/shapes/ShapeBitmap"
 
 // SVG generation
 export * from "./svg-gen"
+export * from "./split-by-cut-setting"
 
 // XML parsing utilities
 export * from "./xml-parsing/parseXml"
