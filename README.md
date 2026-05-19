@@ -20,6 +20,20 @@ const project = LightBurnProject.parse(fs.readFileSync("project.lbrn2", "utf8"))
 console.log(project.children)
 ```
 
+### Offsetting Project Content
+
+```tsx
+import { applyOffsetToLbrnContent } from "lbrnts"
+
+const source = fs.readFileSync("project.lbrn2", "utf8")
+const shifted = applyOffsetToLbrnContent({
+  lbrnContent: source,
+  xOffset: 10,
+  yOffset: -5,
+})
+```
+
+
 ### Creating Projects from Scratch
 
 You can programmatically create LightBurn projects by constructing the project and its elements. Below is a table of all constructible classes with links to their documentation:

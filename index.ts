@@ -37,6 +37,8 @@ export { VariableText } from "./lib/classes/elements/VariableText"
 // Export main classes and functions
 export { LightBurnBaseElement } from "./lib/classes/LightBurnBaseElement"
 export type { GenerateSvgOptions } from "./lib/svg-gen/index"
+export type { ApplyOffsetToLbrnContentParams } from "./lib/apply-offset"
+export { applyOffsetToLbrnContent } from "./lib/apply-offset"
 // Export SVG generation
 export { generateLightBurnSvg } from "./lib/svg-gen/index"
 export type { SplitLightBurnProjectFile } from "./lib/split-by-cut-setting"
