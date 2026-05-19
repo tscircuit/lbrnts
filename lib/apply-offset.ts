@@ -2,7 +2,7 @@ import { LightBurnBaseElement } from "./classes/LightBurnBaseElement"
 import { LightBurnProject } from "./classes/elements/LightBurnProject"
 import { ShapeBase, type Mat } from "./classes/elements/shapes/ShapeBase"
 
-export interface ApplyOffsetToLbrnContentParams {
+export interface ApplyOffsetToLbrnParams {
   lbrnContent: string
   xOffset: number
   yOffset: number
@@ -32,9 +32,7 @@ function applyOffsetToShape(
   shape.xform = [a, b, c, d, tx + xOffset, ty + yOffset] as Mat
 }
 
-export function applyOffsetToLbrnContent(
-  params: ApplyOffsetToLbrnContentParams,
-): string {
+export function applyOffsetToLbrn(params: ApplyOffsetToLbrnParams): string {
   const { lbrnContent, xOffset, yOffset } = params
 
   assertFiniteOffset("xOffset", xOffset)

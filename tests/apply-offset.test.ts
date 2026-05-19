@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test"
 import { readFileSync } from "node:fs"
 import {
-  applyOffsetToLbrnContent,
+  applyOffsetToLbrn,
   generateLightBurnSvg,
   LightBurnBaseElement,
   LightBurnProject,
@@ -19,7 +19,7 @@ test("applies an offset to repro04 motor controller content", async () => {
   const beforeSvg = generateLightBurnSvg(beforeProject, { margin: 0 })
   await expect(beforeSvg).toMatchSvgSnapshot(import.meta.path, "before")
 
-  const shiftedXml = applyOffsetToLbrnContent({
+  const shiftedXml = applyOffsetToLbrn({
     lbrnContent: xml,
     xOffset: 10,
     yOffset: -5,

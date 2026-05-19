@@ -23,10 +23,10 @@ console.log(project.children)
 ### Offsetting Project Content
 
 ```tsx
-import { applyOffsetToLbrnContent } from "lbrnts"
+import { applyOffsetToLbrn } from "lbrnts"
 
 const source = fs.readFileSync("project.lbrn2", "utf8")
-const shifted = applyOffsetToLbrnContent({
+const shifted = applyOffsetToLbrn({
   lbrnContent: source,
   xOffset: 10,
   yOffset: -5,
