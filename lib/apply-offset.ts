@@ -1,9 +1,8 @@
-import { LightBurnBaseElement } from "./classes/LightBurnBaseElement"
 import { LightBurnProject } from "./classes/elements/LightBurnProject"
 import { ShapeBase, type Mat } from "./classes/elements/shapes/ShapeBase"
 
 export interface ApplyOffsetToLbrnParams {
-  lbrnContent: string
+  lbrnProject: LightBurnProject
   xOffset: number
   yOffset: number
 }
@@ -12,15 +11,6 @@ function assertFiniteOffset(name: string, value: number) {
   if (!Number.isFinite(value)) {
     throw new Error(`${name} must be a finite number`)
   }
-}
-
-function parseProject(lbrnContent: string): LightBurnProject {
-  const parsed = LightBurnBaseElement.parse(lbrnContent)
-  if (!(parsed instanceof LightBurnProject)) {
-    throw new Error("Expected a LightBurnProject XML document")
-  }
-
-  return parsed
 }
 
 function applyOffsetToShape(
@@ -32,19 +22,19 @@ function applyOffsetToShape(
   shape.xform = [a, b, c, d, tx + xOffset, ty + yOffset] as Mat
 }
 
-export function applyOffsetToLbrn(params: ApplyOffsetToLbrnParams): string {
-  const { lbrnContent, xOffset, yOffset } = params
+export function applyOffsetToLbrn(
+  params: ApplyOffsetToLbrnParams,
+): LightBurnProject {
+  const { lbrnProject, xOffset, yOffset } = params
 
   assertFiniteOffset("xOffset", xOffset)
   assertFiniteOffset("yOffset", yOffset)
 
-  const project = parseProject(lbrnContent)
-
-  for (const child of project.children) {
+  for (const child of lbrnProject.children) {
     if (child instanceof ShapeBase) {
       applyOffsetToShape(child, xOffset, yOffset)
     }
   }
 
-  return project.getString()
+  return lbrnProject
 }

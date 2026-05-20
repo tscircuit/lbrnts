@@ -13,17 +13,21 @@ test("applies an offset to repro04 motor controller content", async () => {
     "utf-8",
   )
 
-  const beforeProject = LightBurnBaseElement.parse(xml)
-  expect(beforeProject).toBeInstanceOf(LightBurnProject)
+  const project = LightBurnBaseElement.parse(xml)
+  expect(project).toBeInstanceOf(LightBurnProject)
+  if (!(project instanceof LightBurnProject)) return
 
-  const beforeSvg = generateLightBurnSvg(beforeProject, { margin: 0 })
+  const beforeSvg = generateLightBurnSvg(project, { margin: 0 })
   await expect(beforeSvg).toMatchSvgSnapshot(import.meta.path, "before")
 
-  const shiftedXml = applyOffsetToLbrn({
-    lbrnContent: xml,
+  const shiftedProject = applyOffsetToLbrn({
+    lbrnProject: project,
     xOffset: 10,
     yOffset: -5,
   })
+  expect(shiftedProject).toBe(project)
+
+  const shiftedXml = shiftedProject.getString()
   expect(shiftedXml).not.toBe(xml)
   expect(shiftedXml).toContain("<XForm>1 0 0 1 10 -5</XForm>")
 
