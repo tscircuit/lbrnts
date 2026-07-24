@@ -158,6 +158,8 @@ new CutSetting(init?: {
   angle?: number              // Scan angle
   overScanning?: number       // Over-scanning distance
   lineAngle?: number          // Line angle for fill
+  wobbleEnable?: boolean      // Enable wobble for scan fills
+  anglePerPass?: number       // Hatch angle increment per pass
 })
 ```
 

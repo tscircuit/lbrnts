@@ -26,6 +26,8 @@ export interface CutSettingInit {
   overScanning?: number
   lineAngle?: number
   crossHatch?: boolean
+  wobbleEnable?: boolean
+  anglePerPass?: number
   frequency?: number
   qPulseWidth?: number
 }
@@ -54,6 +56,8 @@ export class CutSetting extends LightBurnBaseElement {
   private _overScanning?: number
   private _lineAngle?: number
   private _crossHatch?: boolean
+  private _wobbleEnable?: boolean
+  private _anglePerPass?: number
   private _frequency?: number
   private _qPulseWidth?: number
 
@@ -86,6 +90,10 @@ export class CutSetting extends LightBurnBaseElement {
         this._overScanning = init.overScanning
       if (init.lineAngle !== undefined) this._lineAngle = init.lineAngle
       if (init.crossHatch !== undefined) this._crossHatch = init.crossHatch
+      if (init.wobbleEnable !== undefined)
+        this._wobbleEnable = init.wobbleEnable
+      if (init.anglePerPass !== undefined)
+        this._anglePerPass = init.anglePerPass
       if (init.frequency !== undefined) this._frequency = init.frequency
       if (init.qPulseWidth !== undefined) this._qPulseWidth = init.qPulseWidth
     }
@@ -252,6 +260,20 @@ export class CutSetting extends LightBurnBaseElement {
     this._crossHatch = value
   }
 
+  get wobbleEnable(): boolean | undefined {
+    return this._wobbleEnable
+  }
+  set wobbleEnable(value: boolean | undefined) {
+    this._wobbleEnable = value
+  }
+
+  get anglePerPass(): number | undefined {
+    return this._anglePerPass
+  }
+  set anglePerPass(value: number | undefined) {
+    this._anglePerPass = value
+  }
+
   get frequency(): number | undefined {
     return this._frequency
   }
@@ -300,6 +322,8 @@ export class CutSetting extends LightBurnBaseElement {
       "overScanning",
       "lineAngle",
       "crossHatch",
+      "wobbleEnable",
+      "anglePerPass",
       "frequency",
       "qPulseWidth",
     ]
@@ -350,6 +374,8 @@ export class CutSetting extends LightBurnBaseElement {
     cs.overScanning = num(getChildValue("overScanning"), undefined)
     cs.lineAngle = num(getChildValue("lineAngle"), undefined)
     cs.crossHatch = boolish(getChildValue("crossHatch"), undefined)
+    cs.wobbleEnable = boolish(getChildValue("wobbleEnable"), undefined)
+    cs.anglePerPass = num(getChildValue("anglePerPass"), undefined)
     cs.frequency = num(getChildValue("frequency"), undefined)
     cs.qPulseWidth = num(getChildValue("QPulseWidth"), undefined)
 
@@ -372,7 +398,10 @@ class CutSettingPropertyElement extends LightBurnBaseElement {
   }
 
   private formatValue(value: boolean | number): string {
-    if (this.propName === "crossHatch" && typeof value === "boolean") {
+    if (
+      (this.propName === "crossHatch" || this.propName === "wobbleEnable") &&
+      typeof value === "boolean"
+    ) {
       return value ? "1" : "0"
     }
     if (typeof value === "number") {

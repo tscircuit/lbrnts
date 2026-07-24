@@ -282,6 +282,8 @@ describe("getString() returns full LightBurn XML", () => {
       numPasses: 100,
       frequency: 20000,
       qPulseWidth: 1,
+      wobbleEnable: true,
+      anglePerPass: 1,
     })
 
     expect(cutSetting.getString()).toMatchInlineSnapshot(`
@@ -290,6 +292,8 @@ describe("getString() returns full LightBurn XML", () => {
           <name Value="Copper Cut"/>
           <speed Value="300"/>
           <numPasses Value="100"/>
+          <wobbleEnable Value="1"/>
+          <anglePerPass Value="1"/>
           <frequency Value="20000"/>
           <QPulseWidth Value="1"/>
       </CutSetting>"
