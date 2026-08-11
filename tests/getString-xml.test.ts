@@ -170,11 +170,31 @@ describe("getString() returns full LightBurn XML", () => {
               <minPower Value="40"/>
               <maxPower Value="50"/>
               <speed Value="150"/>
-              <enablePowerRamp Value="true"/>
+              <enablePowerRamp Value="1"/>
               <rampLength Value="2"/>
               <numPasses Value="3"/>
           </CutSetting>
       </LightBurnProject>"
+    `)
+  })
+
+  test("CutSetting serializes booleans as LightBurn-compatible values", () => {
+    const cutSetting = new CutSetting({
+      enablePowerRamp: false,
+      perforate: true,
+      dotMode: false,
+      crossHatch: true,
+      wobbleEnable: false,
+    })
+
+    expect(cutSetting.getString()).toMatchInlineSnapshot(`
+      "<CutSetting type="Cut">
+          <enablePowerRamp Value="0"/>
+          <perforate Value="1"/>
+          <dotMode Value="0"/>
+          <crossHatch Value="1"/>
+          <wobbleEnable Value="0"/>
+      </CutSetting>"
     `)
   })
 

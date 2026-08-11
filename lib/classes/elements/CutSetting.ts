@@ -398,10 +398,9 @@ class CutSettingPropertyElement extends LightBurnBaseElement {
   }
 
   private formatValue(value: boolean | number): string {
-    if (
-      (this.propName === "crossHatch" || this.propName === "wobbleEnable") &&
-      typeof value === "boolean"
-    ) {
+    if (typeof value === "boolean") {
+      // LightBurn CutSetting booleans use numeric values. JavaScript's
+      // lowercase "true"/"false" strings are rejected when opening a project.
       return value ? "1" : "0"
     }
     if (typeof value === "number") {
