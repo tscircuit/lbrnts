@@ -12,6 +12,7 @@ export * from "./classes/elements/Thumbnail"
 // Shape classes
 export * from "./classes/elements/shapes/ShapeBase"
 export * from "./classes/elements/shapes/ShapeEllipse"
+export * from "./classes/elements/shapes/ShapePolygon"
 export * from "./classes/elements/shapes/ShapeRect"
 export * from "./classes/elements/shapes/ShapePath"
 export * from "./classes/elements/shapes/ShapeText"
