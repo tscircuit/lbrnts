@@ -7,6 +7,7 @@ import "./lib/classes/elements/CutSetting"
 import "./lib/classes/elements/Notes"
 import "./lib/classes/elements/shapes/ShapeRect"
 import "./lib/classes/elements/shapes/ShapeEllipse"
+import "./lib/classes/elements/shapes/ShapePolygon"
 import "./lib/classes/elements/shapes/ShapePath"
 import "./lib/classes/elements/shapes/ShapeGroup"
 import "./lib/classes/elements/shapes/ShapeBitmap"
@@ -23,6 +24,7 @@ export { ShapeBase } from "./lib/classes/elements/shapes/ShapeBase"
 export { ShapeBitmap } from "./lib/classes/elements/shapes/ShapeBitmap"
 export { ShapeEllipse } from "./lib/classes/elements/shapes/ShapeEllipse"
 export { ShapeGroup } from "./lib/classes/elements/shapes/ShapeGroup"
+export { ShapePolygon } from "./lib/classes/elements/shapes/ShapePolygon"
 export type {
   Prim,
   ShapePathInit,
