@@ -1,3 +1,4 @@
+import { escapeXmlAttribute } from "../../xml-parsing/escape-xml-attribute"
 import type { XmlJsonElement } from "../../xml-parsing/xml-parsing-types"
 import { LightBurnBaseElement } from "../LightBurnBaseElement"
 import { boolish, num, str } from "./_coerce"
@@ -418,7 +419,7 @@ class CutSettingPropertyElement extends LightBurnBaseElement {
     const indentStr = "    ".repeat(indent)
     const tagName =
       this.propName === "qPulseWidth" ? "QPulseWidth" : this.propName
-    return `${indentStr}<${tagName} Value="${this.formatValue(this.propValue)}"/>`
+    return `${indentStr}<${tagName} Value="${escapeXmlAttribute(this.formatValue(this.propValue))}"/>`
   }
 }
 

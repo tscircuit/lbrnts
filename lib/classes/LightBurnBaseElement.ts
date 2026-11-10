@@ -1,3 +1,4 @@
+import { escapeXmlAttribute } from "../xml-parsing/escape-xml-attribute"
 import { parseXml } from "../xml-parsing/parseXml"
 import type {
   XmlJson,
@@ -49,7 +50,7 @@ export class LightBurnBaseElement {
         if (typeof value === "boolean") {
           attrPairs.push(`${key}="${value ? "True" : "False"}"`)
         } else {
-          attrPairs.push(`${key}="${value}"`)
+          attrPairs.push(`${key}="${escapeXmlAttribute(String(value))}"`)
         }
       }
     }
