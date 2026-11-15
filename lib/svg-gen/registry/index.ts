@@ -5,6 +5,7 @@ import { bitmapRenderer } from "./shape-bitmap"
 import { ellipseRenderer } from "./shape-ellipse"
 import { groupRenderer } from "./shape-group"
 import { pathRenderer } from "./shape-path"
+import { polygonRenderer } from "./shape-polygon"
 import { rectRenderer } from "./shape-rect"
 import { textRenderer } from "./shape-text"
 
@@ -21,6 +22,7 @@ export interface ShapeRenderer<T extends ShapeBase = ShapeBase> {
 const REGISTRY: ShapeRenderer[] = [
   rectRenderer,
   ellipseRenderer,
+  polygonRenderer,
   pathRenderer,
   bitmapRenderer,
   textRenderer,
