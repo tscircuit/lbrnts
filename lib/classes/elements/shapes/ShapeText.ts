@@ -14,6 +14,18 @@ export class ShapeText extends ShapeBase {
     this.token = "Shape.Text"
   }
 
+  override getXmlAttributes(): Record<
+    string,
+    string | number | boolean | undefined
+  > {
+    return {
+      Type: "Text",
+      Text: this.text,
+      Font: this.font,
+      ...this.getShapeXmlAttributes(),
+    }
+  }
+
   static override fromXmlJson(node: XmlJsonElement): ShapeText {
     const text = new ShapeText()
     const common = ShapeBase.readCommon(node)
